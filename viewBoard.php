@@ -2,21 +2,23 @@
 session_start();
 include("pdoInc.php");
 
-if(isset($_GET['del'])){
+//-----刪除貼文-----//
+if(isset($_GET['del'])){ 
     $sthDel = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
     $sthDel->execute(array((int)$_GET['del']));
     $row = $sthDel->fetch(PDO::FETCH_ASSOC);
-    if ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account']){
-        $sth3 = $dbh->prepare('SELECT id FROM my_thread WHERE root_thread_id = ?');
+    if ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account']){ //管理員or貼文擁有者有權刪除貼文
+
+        $sth3 = $dbh->prepare('SELECT id FROM my_thread WHERE root_thread_id = ?'); //搜尋貼文下的留言id
         $sth3->execute(array( (int)$_GET['del'] ));
         while($row3 = $sth3->fetch(PDO::FETCH_ASSOC)){
-            $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
-            $sthDelDice->execute(array( (int)$row3['id']));
+            $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?'); //依留言id刪除骰子
+            $sthDelDice->execute(array( (int)$row3['id'])); 
         }
-        $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? or root_thread_id = ?');
+        $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? or root_thread_id = ?'); //刪除貼文與其留言
         $sth->execute(array((int)$_GET['del'], (int)$_GET['del']));
         
-        $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
+        $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?'); //刪除貼文的骰子
         $sthDelDice->execute(array( (int)$_GET['del']));
         echo '<meta http-equiv=REFRESH CONTENT=0;url='.basename($_SERVER['PHP_SELF']).'?id='.(int)$_GET['id'].'>';
     }
@@ -24,12 +26,12 @@ if(isset($_GET['del'])){
 } 
    
 
- 
+//-----撰寫貼文-----//
 $resultStr = " ";
 $sthBoard = $dbh->prepare('SELECT id, name FROM my_board WHERE id = ?');
 
 if(isset($_GET['id'])  && isset($_POST['title']) && isset($_POST['content'])){
-    if(!isset($_SESSION['account'])){
+    if(!isset($_SESSION['account'])){ //未登入不可撰寫新貼文
        $resultStr = "請先登入！";
     }
     else{
@@ -38,8 +40,7 @@ if(isset($_GET['id'])  && isset($_POST['title']) && isset($_POST['content'])){
             $sthBoard->execute(array((int)$_GET['id']));
             if($sthBoard->rowCount() == 1){
 
-                //Instert thread
-                $sth = $dbh->prepare(
+                $sth = $dbh->prepare( //新增至資料表
                     'INSERT INTO my_thread (board_id, nickname, title, content, account, point) VALUES (?, ?, ?, ?, ?, ?)'
                 );
                 $sth->execute(array(
@@ -51,33 +52,36 @@ if(isset($_GET['id'])  && isset($_POST['title']) && isset($_POST['content'])){
                     $_POST['min_point'][0]
                 ));
 
-                $lastId = $dbh->lastInsertId();
+                $lastId = $dbh->lastInsertId(); //取得最新加入的貼文的id
                 //------------ dice -------------//
                 $string_content = $_POST['content'];
                 $regex = "/\([\d\w\-]+\)/";
 
-                //content
                 preg_match_all($regex, $string_content, $matches);
                 foreach ($matches[0] as $word) {
-                    //type 1 == (oj) : AC / WA / RE
-                    if($word == "(oj)"){
+                    if($word == "(oj)"){ //type 1 == (oj) : Online Judge骰 -> AC/RE/WA
                         $rand_num = rand(0,2);
                         $dbh->exec(
                             "INSERT INTO my_dice (type, thread_id, number) VALUES (1, '$lastId', '$rand_num')"
                         );
-                    }else if($word == "(queen-rainbow)"){
+                    }else if($word == "(queen-rainbow)"){ //type 2 == (queen-rainbow) : 七彩女王骰
                         $rand_num = rand(0,5);
                         $dbh->exec(
                             "INSERT INTO my_dice (type, thread_id, number) VALUES (2, '$lastId', '$rand_num')"
                         );
+                    } else if($word == "(dice-six)"){ //type3 == (dice-six) ：六面骰
+                        $rand_num = rand(0,5);
+                        $dbh->exec(
+                            "INSERT INTO my_dice (type, thread_id, number) VALUES (3, '$lastId', '$rand_num')"
+                        );
                     }
                 }
       
-                //Add point
+                //------------ 發文新增點數 -------------//
                 $sth1 = $dbh->prepare('SELECT point from user where account = ?');
                 $sth1->execute(array($_SESSION['account']));
                 $row = $sth1->fetch(PDO::FETCH_ASSOC);
-                $point = $row['point']+5;
+                $point = $row['point']+5; 
                 $sth2 = $dbh->prepare('UPDATE user SET point = ? WHERE account = ?');
                 $sth2->execute(array($point, $_SESSION['account']));
                 echo '<meta http-equiv=REFRESH CONTENT=0;url=viewBoard.php?id='.(int)$_GET['id'].'>';
@@ -99,7 +103,6 @@ if(isset($_GET['id'])  && isset($_POST['title']) && isset($_POST['content'])){
  
 <html>
 <head>
-    <!--link rel=stylesheet type="text/css" href="hw4.css"--> 
     <style>textarea{vertical-align:top}</style>
     <style>
         body{
@@ -229,9 +232,9 @@ a{
                         <table class="left-table" border=0>
                             <tr>
                                 <?php
-                                    echo "<td><a class=\"up-link\" href=\"./hw5.php\">返回看板列表</a></td>";
-                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){
-                                        
+                                    echo "<td><a class=\"up-link\" href=\"./index.php\">返回看板列表</a></td>";
+
+                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){ //如果登入，顯示暱稱等等    
                                         echo "<td class=\"login\"  ><a class=\"upp-link\" href=\"./admin.php\" id=\"name\"><font>Hi, ".$_SESSION['account']." (".htmlspecialchars($_SESSION['nickname']).")</font></a></td>"; 
                                         echo "<td style=\"color:#f7efc1; \"><i class=\"far fa-smile\"></i>";
                                         $sth = $dbh->prepare('SELECT point from user where account = ?');
@@ -249,11 +252,11 @@ a{
                         <table class="right-table" border=0>
                             <tr>
                                 <?php
-                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){ //如果登入
+                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){ //如果登入，顯示修改資料、登出連結
                                         echo "<td><a class=\"up-link\" href=\"./edit_profile.php\">修改資料</a></td>";
                                         echo "<td><a class=\"up-link\" href=\"./logout.php\">登出</a></td>";
                                     }
-                                    else{
+                                    else{ //未登入，顯示註冊連結
                                         echo "<td><a class=\"up-link\" href=\"./register.php\">註冊</a></td> <td><a class=\"up-link\" href=\"./login.php\">登入</a></td>";
                                     }
                                 ?>
@@ -296,42 +299,27 @@ if(isset($_GET['id'])){
     <hr class="zi_hr_01" id="hr_01">
     
 <div class="container5" style="text-align:left;">
+
 <?php
+        //----顯示貼文----//
         $sth = $dbh->prepare('SELECT * from my_thread WHERE board_id = ? ORDER BY id');
         $sth->execute(array((int)$_GET['id']));
+
         while($row = $sth->fetch(PDO::FETCH_ASSOC)){
-            if(isset($_SESSION['account']) && $_SESSION['account'] != null){
-                if($_SESSION['is_admin']==1 || $row['account']==$_SESSION['account']){
+            if(isset($_SESSION['account']) && $_SESSION['account'] != null){ //顯示刪除貼文按鈕
+                if($_SESSION['is_admin']==1 || $row['account']==$_SESSION['account']){ 
                     echo '<a href="'.
                     basename($_SERVER['PHP_SELF']).'?id='.(int)$_GET['id'].'&del='.$row['id'].
                     '"> <i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a> &nbsp&nbsp';
                 }
             }
+            //----顯示點數----//
             echo '<i  class="far fa-smile"></i>&nbsp';
             $sth1 = $dbh->prepare('SELECT point from my_thread where id = ?');
             $sth1->execute(array((int)$row['id']));
             $row1 = $sth1->fetch(PDO::FETCH_ASSOC);
             echo $row1['point']."&nbsp&nbsp";
 
-            // $string_title1 = htmlspecialchars($row['title']);
-            
-            // $regex = "/\([\d\w]+\)/";
-            // preg_match_all($regex, $string_title1, $matches1);
-            // $sth2 = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? AND type = 1");
-            // $sth2->execute(array($row['id']));
-            // foreach ($matches1[0] as $word1) {
-            //     //type 1 == (oj) : AC / WA / RE
-            //     if($word1 == "(oj)"){
-            //         $row2 = $sth2->fetch(PDO::FETCH_ASSOC);
-            //         $src = "<img src='./ankaDice/oj".$row2['number'].".png'>";
-            //         //echo $src;
-            //         //echo "<img src='./ankaDice/oj"+$row2['id']+".png'>";
-            //         $string_title1 = preg_replace("/\(oj\)/", $src, $string_title1, 1);
-                    
-            //     }
-            // }
-
-            // echo '<a class="title-link" href="viewThread.php?id='.$row['id'].'">'.$string_title1.'</a>';
             echo '<a class="title-link" href="viewThread.php?id='.$row['id'].'">'.htmlspecialchars($row['title']).'</a>';
             echo '<font class="tex"> &nbsp;By '.htmlspecialchars($row['nickname']).'</font><br>';
             echo '<hr class="hr_02">';

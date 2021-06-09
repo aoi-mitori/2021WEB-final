@@ -2,32 +2,32 @@
 session_start();
 include("pdoInc.php");
 
+//----閱讀權限----//
 $sth2 = $dbh->prepare('SELECT point from my_thread where id = ?');
 $sth2->execute(array($_GET['id']));
 $row2 = $sth2->fetch(PDO::FETCH_ASSOC);
-if ($row2['point'] > 0) {
-    if (!isset($_SESSION['account'])) {
+
+if ($row2['point'] > 0) { //文章閱讀權限 > 0
+    if (!isset($_SESSION['account'])) { //未登入無法閱讀
         echo "權限不足，請先登入:(";
-        die('<meta http-equiv=REFRESH CONTENT=3;url=./hw5.php>');
-    } else {
+        die('<meta http-equiv=REFRESH CONTENT=3;url=./index.php>');
+    } else { //點數小於權限無法閱讀
         $sth = $dbh->prepare('SELECT point from user where account = ?');
         $sth->execute(array($_SESSION['account']));
         $row = $sth->fetch(PDO::FETCH_ASSOC);
         if ($row['point'] < $row2['point']) {
             echo "權限不足:(";
-            die('<meta http-equiv=REFRESH CONTENT=3;url=./hw5.php>');
+            die('<meta http-equiv=REFRESH CONTENT=3;url=./index.php>');
         }
     }
 }
 
-
-
+//----刪除留言----//
 if (isset($_GET['del'])) {
-    //echo $_GET['del'];
     $sth1 = $dbh->prepare('SELECT * FROM my_thread WHERE id = ?');
     $sth1->execute(array((int)$_GET['del']));
     $row = $sth1->fetch(PDO::FETCH_ASSOC);
-    if($row['root_thread_id'] == 0 ){
+    if($row['root_thread_id'] == 0 ){ //若刪除的是第一則留言(即貼文本身)，則將其底下的留言全數刪除  !目前第一則留言不會有刪除連結，所以不會用到
         if($row['account'] == $_SESSION['account']){
             $sth3 = $dbh->prepare('SELECT id FROM my_thread WHERE root_thread_id = ?');
             $sth3->execute(array( (int)$_GET['del'] ));
@@ -43,35 +43,39 @@ if (isset($_GET['del'])) {
             $sthDelDice->execute(array( (int)$_GET['del']));
             echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
         }
-    } else{
+    } else{ //刪除留言
 
         $sth2 = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
         $sth2->execute(array((int)$row['root_thread_id']));
         $row2 = $sth2->fetch(PDO::FETCH_ASSOC);
-        if($row2['account']==$_SESSION['account']){
-            $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? or root_thread_id = ?');
-            $sth->execute(array( (int)$_GET['del'], (int)$_GET['del'] ));
-            $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
+        if($row2['account']==$_SESSION['account'] || $_SESSION['is_admin']==1){ //樓主與管理員有權限刪除留言
+            $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? '); //刪除留言
+            $sth->execute(array( (int)$_GET['del']));
+            $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?'); //刪除骰子
             $sthDelDice->execute(array( (int)$_GET['del']));
             echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
         }
     }
 }
 
-if (isset($_GET['update']) && isset($_POST['edit_msg'])) {
-    $sth1 = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
-    $sth1->execute(array((int)$_GET['update']));
+//----編輯留言----//
+// if (isset($_GET['update']) && isset($_POST['edit_msg'])) {
+//     $sth1 = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
+//     $sth1->execute(array((int)$_GET['update']));
 
-    if ($sth1->rowCount() == 1) {
-        $row = $sth1->fetch(PDO::FETCH_ASSOC);
-        if ($_SESSION['account'] == $row['account']) {
-            $sth = $dbh->prepare('UPDATE my_thread SET content = ? WHERE id = ?');
-            $sth->execute(array($_POST['edit_msg'], (int)$_GET['update']));
-            echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
-        }
-    }
-}
+//     if ($sth1->rowCount() == 1) {
+//         $row = $sth1->fetch(PDO::FETCH_ASSOC);
+//         if ($_SESSION['account'] == $row['account']) {
+//             $sth = $dbh->prepare('UPDATE my_thread SET content = ? WHERE id = ?');
+//             $sth->execute(array($_POST['edit_msg'], (int)$_GET['update']));
+//             echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
+//         }
+//     }
+// }
 
+
+
+//----顯示留言----//
 $resultStr = "";
 function showMsg($row, $numFloor, $sthDice, $owner)
 {
@@ -81,71 +85,58 @@ function showMsg($row, $numFloor, $sthDice, $owner)
     $msg = str_replace("\n", "<br>", $msg);
     $account = htmlspecialchars($row['account']);
     if ($numFloor == 0) {
-        echo '<a href="#ending">跳至最新留言</a><br>';
+        echo '<a href="#ending">跳至最新留言</a><br>'; //跳至頁面最底的連結
         echo '<a id="starting"></a>';//定位標籤
         echo '<font class="text">討論串標題：</font><a class="title-link" href="viewBoard.php?id=' . $row['board_id'] . '">' . $title . '</a><br><br>';
     }
-    echo "<font class=\"text\">#" . ($numFloor + 1) . "</font>";
-    // if ($account == $_SESSION['account']) { //edit
-    //     echo '&nbsp&nbsp&nbsp<a href="' .
-    //         basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&update=' . $row['id'] .
-    //         '"><i class="fas fa-pencil-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
-    // }
+    echo "<font class=\"text\">#" . ($numFloor + 1) . "</font>"; //顯示樓數
 
-    if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $owner == $_SESSION['account'])) { //delete
+    if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $owner == $_SESSION['account'])) { //管理員與樓主顯示刪除留言按鈕
         if($numFloor!=0){
             echo '&nbsp&nbsp&nbsp<a href="' .
             basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
             '"><i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
         }
     }
-    // } else if ($account == $_SESSION['account']) {
-    //     echo '&nbsp&nbsp&nbsp<a href="' .
-    //         basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
-    //         '"><i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
-    // }
 
-    //dice//
+    //-------dice-------//
     $regex = "/\([\d\w\-]+\)/";
     preg_match_all($regex, $msg, $matches);
     
-    foreach ($matches[0] as $word) {
-        //type 1 == (oj) : AC / WA / RE
+    foreach ($matches[0] as $word) { //type 1 == (oj) : Online Judge骰 -> AC/RE/WA
         if($word == "(oj)"){
             $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
             $src = "<img src='./ankaDice/oj".$rowMSG['number'].".png'>";
             $msg = preg_replace("/\(oj\)/", $src, $msg, 1);
-        }else if($word == "(queen-rainbow)"){
+        }else if($word == "(queen-rainbow)"){ //type 2 == (queen-rainbow) : 七彩女王骰
             $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
-            $src = "<img src='./ankaDice/queen/".$rowMSG['number'].".png'>";
+            $src = "<img src='./ankaDice/queen".$rowMSG['number'].".png'>";
             $msg = preg_replace("/\(queen-rainbow\)/", $src, $msg, 1);
-        } else if($word == "(dice-six)"){
+        } else if($word == "(dice-six)"){ //type3 == (dice-six) ：六面骰
             $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
-            $src = "<img src='./ankaDice/dice6/".$rowMSG['number'].".png'>";
+            $src = "<img src='./ankaDice/dice".$rowMSG['number'].".png'>";
             $msg = preg_replace("/\(dice-six\)/", $src, $msg, 1);
         }
     }
-
-
-
-
 
     echo '<table class="msg" rules="all" cellpadding="5" ><tr>';
     echo "<td><font color=\"#113285\">留言人:</font> " . $nn . "</td>";
     echo "<td><font color=\"#113285\">時間:</font> " . $row['time'] . "</td>";
     echo "<tr><td colspan=\"2\"><font color=\"#113285\">留言內容:</font><br>" . $msg;
 
-    if (isset($_GET['update']) && $row['id'] === $_GET['update']) { //edit
-        echo "<br><br>";
-        echo "<form action=\"viewThread.php?id=" . (int)$_GET['id'] . "&update=" . $row['id'] . "\" method=\"post\">
-            <font color=\"#113285\">修改內容：<br></font><textarea name=\"edit_msg\"></textarea>
-                <input class=\"submit2\" type=\"submit\"><br>
-            </form>";
-    }
+    //----編輯留言----//
+    // if (isset($_GET['update']) && $row['id'] === $_GET['update']) { //edit
+    //     echo "<br><br>";
+    //     echo "<form action=\"viewThread.php?id=" . (int)$_GET['id'] . "&update=" . $row['id'] . "\" method=\"post\">
+    //         <font color=\"#113285\">修改內容：<br></font><textarea name=\"edit_msg\"></textarea>
+    //             <input class=\"submit2\" type=\"submit\"><br>
+    //         </form>";
+    // }
     echo "</td></tr></table><br>";
 }
 
-if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
+//----發表回應（留言）----//
+if (isset($_GET['id']) && isset($_POST['content'])) { 
     if (!isset($_SESSION['account'])) {
         $resultStr = "請先登入！";
     } else {
@@ -164,31 +155,29 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                 ));
 
                 
-                //dice
+                //----dice----//
                 $lastId = $dbh->lastInsertId();
                 $string_content = $_POST['content'];
                 $regex = "/\([\d\w\-]+\)/";
                 preg_match_all($regex, $string_content, $matches);
                 foreach ($matches[0] as $word) {
-                    //type 1 == (oj) : AC / WA / RE
-                    if($word == "(oj)"){
+                    if($word == "(oj)"){ //type 1 == (oj) : Online Judge骰 -> AC/RE/WA
                         $rand_num = rand(0,2);
                         $dbh->exec(
                             "INSERT INTO my_dice (type, thread_id, number) VALUES (1, '$lastId', '$rand_num')"
                         );
-                    }else if($word == "(queen-rainbow)"){
+                    }else if($word == "(queen-rainbow)"){ //type 2 == (queen-rainbow) : 七彩女王骰
                         $rand_num = rand(0,5);
                         $dbh->exec(
                             "INSERT INTO my_dice (type, thread_id, number) VALUES (2, '$lastId', '$rand_num')"
                         );
-                    } else if($word =="(dice-six)"){
+                    } else if($word =="(dice-six)"){ //type3 == (dice-six) ：六面骰
                         $rand_num = rand(0,5);
                         $dbh->exec(
                             "INSERT INTO my_dice (type, thread_id, number) VALUES (3, '$lastId', '$rand_num')"
                         );
                     }
                 }
-
 
                 echo '<meta http-equiv=REFRESH CONTENT=0;url=viewThread.php?id=' . (int)$_GET['id'] . '>';
             }
@@ -382,7 +371,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                         <table class="left-table" border=0>
                             <tr>
                                 <?php
-                                echo "<td><a class=\"up-link\" href=\"./hw5.php\">返回看板列表</a></td>";
+                                echo "<td><a class=\"up-link\" href=\"./index.php\">返回看板列表</a></td>";
                                 if (isset($_SESSION['account']) && $_SESSION['account'] != null) {
 
                                     echo "<td class=\"login\"  ><a class=\"upp-link\" href=\"./admin.php\" id=\"name\"><font>Hi, " . $_SESSION['account'] . " (" . htmlspecialchars($_SESSION['nickname']) . ")</font></a></td>";
@@ -443,7 +432,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                     <select name="filter">
                         <option value="0">顯示全部</option>
                         <option value="1">只顯示樓主</option>
-                        <option value="2">只顯示樓主與中骰者</option>
+                        <option value="2">只顯示樓主與安價者</option>
                     </select>
                     <input type="submit">
                 </form>
@@ -455,17 +444,16 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
             $sthOwnerResult = $sthOwner->fetch();
 
             if (isset($_POST['filter'])) {
-                if ($_POST['filter'] == 0) {
+                if ($_POST['filter'] == 0) { //顯示全部
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
                         showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                     }
                     echo "<a id='ending'></a>";//定位標籤
-                    echo '<a href="#starting">跳至第一則留言</a>';
-                } else if ($_POST['filter'] == 1) {
-                   
-                    // $thisOwner = $sthOwnerResult[0];
+                    echo '<a href="#starting">跳至第一則留言</a>'; //跳至第一則留言的連結
+
+                } else if ($_POST['filter'] == 1) { //只顯示樓主
                     $ownerThreads = $dbh->prepare('SELECT * from my_thread where id = ? OR (root_thread_id = ? AND account = ?)');
                     $ownerThreads->execute(array((int)$_GET['id'], (int)$_GET['id'], strval($sthOwnerResult[0])));
                     while ($row = $ownerThreads->fetch(PDO::FETCH_ASSOC)) {
@@ -473,18 +461,14 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                         $sthDice->execute(array($row['id']));
                         showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                     }
-                    echo "<a id='ending'></a>";
-                    echo '<a href="#starting">跳至第一則留言</a>';
-                    // $row = $sth->fetch(PDO::FETCH_ASSOC);
+                    echo "<a id='ending'></a>";//定位標籤
+                    echo '<a href="#starting">跳至第一則留言</a>';//跳至第一則留言的連結
 
-                } else if ($_POST['filter'] == 2) {
+                } else if ($_POST['filter'] == 2) { //只顯示樓主與安價者
+
+                    //紀錄樓主的骰子
                     $newDiceType = array();
                     $newDiceNum = array();
-
-                    // $sthOwner = $dbh->prepare('SELECT account from my_thread where id = ?');
-                    // $sthOwner->execute(array((int)$_GET['id']));
-                    // $sthOwnerResult = $sthOwner->fetch();
-                    
                     
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         if( count($newDiceNum)==0 && count($newDiceType)==0 && $row['account']==strval($sthOwnerResult[0]) ){ //已經骰完且此樓是樓主
@@ -494,16 +478,14 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                                 $newDiceType[] = $rowDice['type'];
                                 $newDiceNum[] = $rowDice['number'];
                             }
-                            // for( $ii=0; $ii <sizeof($newDiceNum); $ii++){//
-                            //     echo "NUM".$ii." ".$newDiceNum[$ii]."<br>";
-                            //     echo "TYPE".$ii." ".$newDiceType[$ii]."<br>";
-                            // }//
+
+                            //找出留言中的骰子
                             $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                             $sthDice->execute(array($row['id']));
                             
                             showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
 
-                        } else if( count($newDiceNum)!=0 && count($newDiceType)!=0 ){
+                        } else if( count($newDiceNum)!=0 && count($newDiceType)!=0 ){ //還未全部中骰
                             $flag = FALSE;
                             $sthNewDice = $dbh->prepare('SELECT * from my_dice WHERE thread_id = ?');
                             $sthNewDice->execute(array((int)$row['id']));
@@ -517,11 +499,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                                     }
                                 }
                             }
-                            if($flag == TRUE || $row['account']==strval($sthOwnerResult[0])){ //有骰中或是樓主
-                                // for( $ii=0; $ii <sizeof($newDiceNum); $ii++){//
-                                //     echo "NUM".$ii." ".$newDiceNum[$ii]."<br>";
-                                //     echo "TYPE".$ii." ".$newDiceType[$ii]."<br>";
-                                // }//
+                            if($flag == TRUE || $row['account']==strval($sthOwnerResult[0])){ //有骰中或是樓主，則顯示留言
                                 $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                                 $sthDice->execute(array($row['id']));
                                 
@@ -529,27 +507,26 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                             }
                         }
                     }
-                    echo "<a id='ending'></a>";
-                    echo '<a href="#starting">跳至第一則留言</a>';
-                } else{
+                    echo "<a id='ending'></a>";//定位標籤
+                    echo '<a href="#starting">跳至第一則留言</a>';//跳至第一則留言的連結
+
+                } else{ //顯示全部留言
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
                         showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                     }
-                    echo "<a id='ending'></a>";
-                    echo '<a href="#starting">跳至第一則留言</a>';
+                    echo "<a id='ending'></a>"; //定位標籤
+                    echo '<a href="#starting">跳至第一則留言</a>'; //跳至第一則留言的連結
                 }
-            } else {
-                //echo "haha";
+            } else { //顯示全部留言
                 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-                    //echo "haha1";
                     $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                     $sthDice->execute(array($row['id']));
                     showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                 }
-                echo "<a id='ending'></a>";
-                echo '<a href="#starting">跳至第一則留言</a>';
+                echo "<a id='ending'></a>"; //定位標籤
+                echo '<a href="#starting">跳至第一則留言</a>'; //跳至第一則留言的連結
             }
         } else {
             echo '討論串不存在';

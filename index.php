@@ -5,7 +5,7 @@ include("pdoInc.php");
  
 <html>
 <head>
-    <title>HW5 簡易留言板</title>
+    <title>安安安價板</title>
     <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
     <!--link rel=stylesheet type="text/css" href="hw4.css"--> 
     <style>
@@ -76,11 +76,11 @@ include("pdoInc.php");
                         <table class="left-table" border=0>
                             <tr>
                                 <?php
-                                    echo "<td><font><a class=\"up-link\" href=\"./hw5.php\">返回看板列表</a></font></td>";
+                                    echo "<td><font><a class=\"up-link\" href=\"./index.php\">返回看板列表</a></font></td>";
                                     if($_SESSION['is_admin'] == 1){ // 管理員
                                         echo "<td><font><a class=\"up-link\" href=\"./addBoard.php\">新增看板</a></font></td>";
                                     }
-                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){        
+                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){  //如果登入，顯示Hi,暱稱     
                                         echo "<td class=\"login\"  ><a class=\"upp-link\" href=\"./admin.php\" id=\"name\"><font>Hi, ".$_SESSION['account']." (".htmlspecialchars($_SESSION['nickname']).")</font></a></td>"; 
                                         echo "<td style=\"color:#f7efc1; \"><i class=\"far fa-smile\"></i>";
                                         $sth = $dbh->prepare('SELECT point from user where account = ?');
@@ -98,11 +98,11 @@ include("pdoInc.php");
                         <table class="right-table" border=0>
                             <tr>
                                 <?php
-                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){ //如果登入
+                                    if(isset($_SESSION['account']) && $_SESSION['account'] != null){ //如果登入，顯示修改資料、登出連結
                                         echo "<td><font><a class=\"up-link\" href=\"./edit_profile.php\">修改資料</a></font></td>";
                                         echo "<td><font><a class=\"up-link\" href=\"./logout.php\">登出</a></font></td>";
                                     }
-                                    else{
+                                    else{ //未登入，顯示註冊連結
                                         echo "<td><font><a class=\"up-link\" href=\"./register.php\">註冊</a></font></td> <td><font><a class=\"up-link\" href=\"./login.php\">登入</a></font></td>";
                                     }
                                 ?>
@@ -117,7 +117,7 @@ include("pdoInc.php");
         <table class="body-table" border=0 >
             <?php
                 $sth = $dbh->query('SELECT * from my_board ORDER BY id');
-                while($row = $sth->fetch(PDO::FETCH_ASSOC)){
+                while($row = $sth->fetch(PDO::FETCH_ASSOC)){//顯示看板
                     echo '<tr><td> <font><a class="link" href="viewBoard.php?id='.$row['id'].'">'.$row['name'].'</a></font>&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp';
                     echo ' <font> '.$row['description'].'</font></td></tr>';
                 }

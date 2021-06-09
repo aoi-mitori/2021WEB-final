@@ -15,7 +15,7 @@ if(isset($_POST['account']) && isset($_POST['password'])){
                 $_SESSION['account'] = $row['account'];
                 $_SESSION['nickname'] = $row['nickname'];
                 $_SESSION['is_admin'] = $row['is_admin'];
-                echo '<meta http-equiv=REFRESH CONTENT=0;url=hw5.php>';
+                echo '<meta http-equiv=REFRESH CONTENT=0;url=index.php>';
             }
             else{
                 $resultStr1 = "登入失敗，請檢查帳號及密碼";
@@ -120,7 +120,7 @@ a{
                         <table class="left-table" border=0>
                             <tr>
                                 <?php
-                                    echo "<td><a class=\"up-link\" href=\"./hw5.php\">返回看板列表</a></td>";
+                                    echo "<td><a class=\"up-link\" href=\"./index.php\">返回看板列表</a></td>";
                                     if(isset($_SESSION['account']) && $_SESSION['account'] != null){
                                         echo "<td class=\"login\"  ><a class=\"upp-link\" href=\"./admin.php\" id=\"name\"><font>Hi, ".$_SESSION['account']." (".htmlspecialchars($_SESSION['nickname']).")</font></a></td>"; 
                                     } 

@@ -2,7 +2,7 @@
 - addBoard.php:新增看板
 - admin.php:管理管理員
 - edit_profile.php:修改使用者資料
-- hw5.php:討論版首頁
+- index.php:討論版首頁
 - login.php:登入
 - logout.php:登出
 - pdoInc.php:連接資料庫
@@ -12,27 +12,15 @@
 
 # 使用規則
 - 標題不可使用骰子
-- 樓主可刪除留言
+- 樓主可刪除該樓留言
 
 ## 骰子類型
 請使用半型括號
--  (oj)
--  (queen-rainbow)
--  (dice-six)
+-  (oj) : Online Judge骰 -> AC/RE/WA 三種可能
+-  (queen-rainbow) : 七彩女王骰 -> 紅/橙/黃/綠/藍/紫 六種可能
+-  (dice-six) : 六面骰 -> 1/2/3/4/5/6 六種可能
 
 
 # TODO List
-- 刪除留言時刪除骰子 ok
 - filter保留送出時的狀態
-- 跳到最新留言 ok
-
-
-# 討論
-- point
-- 想要的骰子？
-- 只顯示安價者（樓主＋中骰者）
-    - 樓主跟中骰者底色不同？
-- 標題標籤功能 如果要，要哪些標籤？
-- 把樓數拿掉 可考慮顯示篩選數量（like plurk)
-- 自己的留言顏色不同？
-- 按讚功能
+- 標籤 
