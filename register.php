@@ -8,9 +8,6 @@ $resultStr1 = '';
 if (isset($_POST['nickname']) && isset($_POST['password']) && isset($_POST['account'])) {
     if ($_POST['nickname'] != '' && $_POST['password'] != '' && $_POST['account'] != '') {
         $pattern = "/[^A-Za-z0-9]/";
-        //preg_match($pattern, $_POST['account']); 
-        //preg_match($pattern, $_POST['password']); 
-        // echo $matches_account[0];
         if (preg_match($pattern, $_POST['account']) || preg_match($pattern, $_POST['password'])) $resultStr1 = "帳號密碼請勿使用字母、數字以外的字元！";
         else {
             $sth = $dbh->prepare('SELECT account FROM user WHERE account = ? ');

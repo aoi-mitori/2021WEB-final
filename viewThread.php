@@ -2,9 +2,6 @@
 session_start();
 include("pdoInc.php");
 
-$ar=array("seven","one","two","three","four","seven","eleven" ,"seven");
-
-
 $sth2 = $dbh->prepare('SELECT point from my_thread where id = ?');
 $sth2->execute(array($_GET['id']));
 $row2 = $sth2->fetch(PDO::FETCH_ASSOC);
@@ -26,14 +23,36 @@ if ($row2['point'] > 0) {
 
 
 if (isset($_GET['del'])) {
-    $sth1 = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
+    //echo $_GET['del'];
+    $sth1 = $dbh->prepare('SELECT * FROM my_thread WHERE id = ?');
     $sth1->execute(array((int)$_GET['del']));
+    $row = $sth1->fetch(PDO::FETCH_ASSOC);
+    if($row['root_thread_id'] == 0 ){
+        if($row['account'] == $_SESSION['account']){
+            $sth3 = $dbh->prepare('SELECT id FROM my_thread WHERE root_thread_id = ?');
+            $sth3->execute(array( (int)$_GET['del'] ));
+            while($row3 = $sth3->fetch(PDO::FETCH_ASSOC)){
+                $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
+                $sthDelDice->execute(array( (int)$row3['id']));
+            }
 
-    if ($sth1->rowCount() == 1) {
-        $row = $sth1->fetch(PDO::FETCH_ASSOC);
-        if ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account']) {
-            $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ?');
-            $sth->execute(array((int)$_GET['del']));
+            $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? or root_thread_id = ?');
+            $sth->execute(array( (int)$_GET['del'], (int)$_GET['del'] ));
+
+            $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
+            $sthDelDice->execute(array( (int)$_GET['del']));
+            echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
+        }
+    } else{
+
+        $sth2 = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
+        $sth2->execute(array((int)$row['root_thread_id']));
+        $row2 = $sth2->fetch(PDO::FETCH_ASSOC);
+        if($row2['account']==$_SESSION['account']){
+            $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? or root_thread_id = ?');
+            $sth->execute(array( (int)$_GET['del'], (int)$_GET['del'] ));
+            $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
+            $sthDelDice->execute(array( (int)$_GET['del']));
             echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
         }
     }
@@ -54,7 +73,7 @@ if (isset($_GET['update']) && isset($_POST['edit_msg'])) {
 }
 
 $resultStr = "";
-function showMsg($row, $numFloor, $sthDice)
+function showMsg($row, $numFloor, $sthDice, $owner)
 {
     $title = htmlspecialchars($row['title']);
     $nn = htmlspecialchars($row['nickname']);
@@ -67,32 +86,28 @@ function showMsg($row, $numFloor, $sthDice)
         echo '<font class="text">討論串標題：</font><a class="title-link" href="viewBoard.php?id=' . $row['board_id'] . '">' . $title . '</a><br><br>';
     }
     echo "<font class=\"text\">#" . ($numFloor + 1) . "</font>";
-    if ($account == $_SESSION['account']) { //edit
-        echo '&nbsp&nbsp&nbsp<a href="' .
-            basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&update=' . $row['id'] .
-            '"><i class="fas fa-pencil-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
-    }
+    // if ($account == $_SESSION['account']) { //edit
+    //     echo '&nbsp&nbsp&nbsp<a href="' .
+    //         basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&update=' . $row['id'] .
+    //         '"><i class="fas fa-pencil-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
+    // }
 
-    if (isset($_SESSION['account']) && $_SESSION['account'] != null && $_SESSION['is_admin'] == 1 && $numFloor != 0) { //delete
-        echo '&nbsp&nbsp&nbsp<a href="' .
+    if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $owner == $_SESSION['account'])) { //delete
+        if($numFloor!=0){
+            echo '&nbsp&nbsp&nbsp<a href="' .
             basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
             '"><i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
-    } else if ($account == $_SESSION['account']) {
-        echo '&nbsp&nbsp&nbsp<a href="' .
-            basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
-            '"><i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
+        }
     }
+    // } else if ($account == $_SESSION['account']) {
+    //     echo '&nbsp&nbsp&nbsp<a href="' .
+    //         basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
+    //         '"><i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a>';
+    // }
 
     //dice//
     $regex = "/\([\d\w\-]+\)/";
     preg_match_all($regex, $msg, $matches);
-    // //echo $dbh."123";
-    // echo "123";
-    //$sth = $dbh->query('SELECT * from my_dice');
-    //$sthMSG = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? AND type = 1");
-    // echo $sthMSG;
-    //$sthMSG->execute(array($row['id']));
-    // echo $row['id'];
     
     foreach ($matches[0] as $word) {
         //type 1 == (oj) : AC / WA / RE
@@ -102,8 +117,12 @@ function showMsg($row, $numFloor, $sthDice)
             $msg = preg_replace("/\(oj\)/", $src, $msg, 1);
         }else if($word == "(queen-rainbow)"){
             $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
-            $src = "<img src='./ankaDice/test".$rowMSG['number'].".png'>";
+            $src = "<img src='./ankaDice/queen/".$rowMSG['number'].".png'>";
             $msg = preg_replace("/\(queen-rainbow\)/", $src, $msg, 1);
+        } else if($word == "(dice-six)"){
+            $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
+            $src = "<img src='./ankaDice/dice6/".$rowMSG['number'].".png'>";
+            $msg = preg_replace("/\(dice-six\)/", $src, $msg, 1);
         }
     }
 
@@ -161,6 +180,11 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                         $rand_num = rand(0,5);
                         $dbh->exec(
                             "INSERT INTO my_dice (type, thread_id, number) VALUES (2, '$lastId', '$rand_num')"
+                        );
+                    } else if($word =="(dice-six)"){
+                        $rand_num = rand(0,5);
+                        $dbh->exec(
+                            "INSERT INTO my_dice (type, thread_id, number) VALUES (3, '$lastId', '$rand_num')"
                         );
                     }
                 }
@@ -426,26 +450,28 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
         <?php
 
             $numFloor = 0;
+            $sthOwner = $dbh->prepare('SELECT account from my_thread where id = ?');
+            $sthOwner->execute(array((int)$_GET['id']));
+            $sthOwnerResult = $sthOwner->fetch();
+
             if (isset($_POST['filter'])) {
                 if ($_POST['filter'] == 0) {
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
-                        showMsg($row, $numFloor++, $sthDice);
+                        showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                     }
                     echo "<a id='ending'></a>";//定位標籤
                     echo '<a href="#starting">跳至第一則留言</a>';
                 } else if ($_POST['filter'] == 1) {
-                    $sthOwner = $dbh->prepare('SELECT account from my_thread where id = ?');
-                    $sthOwner->execute(array((int)$_GET['id']));
-                    $sthOwnerResult = $sthOwner->fetch();
+                   
                     // $thisOwner = $sthOwnerResult[0];
                     $ownerThreads = $dbh->prepare('SELECT * from my_thread where id = ? OR (root_thread_id = ? AND account = ?)');
                     $ownerThreads->execute(array((int)$_GET['id'], (int)$_GET['id'], strval($sthOwnerResult[0])));
                     while ($row = $ownerThreads->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
-                        showMsg($row, $numFloor++, $sthDice);
+                        showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                     }
                     echo "<a id='ending'></a>";
                     echo '<a href="#starting">跳至第一則留言</a>';
@@ -455,9 +481,9 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                     $newDiceType = array();
                     $newDiceNum = array();
 
-                    $sthOwner = $dbh->prepare('SELECT account from my_thread where id = ?');
-                    $sthOwner->execute(array((int)$_GET['id']));
-                    $sthOwnerResult = $sthOwner->fetch();
+                    // $sthOwner = $dbh->prepare('SELECT account from my_thread where id = ?');
+                    // $sthOwner->execute(array((int)$_GET['id']));
+                    // $sthOwnerResult = $sthOwner->fetch();
                     
                     
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
@@ -475,7 +501,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                             $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                             $sthDice->execute(array($row['id']));
                             
-                            showMsg($row, $numFloor++, $sthDice);
+                            showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
 
                         } else if( count($newDiceNum)!=0 && count($newDiceType)!=0 ){
                             $flag = FALSE;
@@ -499,7 +525,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                                 $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                                 $sthDice->execute(array($row['id']));
                                 
-                                showMsg($row, $numFloor++, $sthDice);
+                                showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                             }
                         }
                     }
@@ -509,7 +535,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
-                        showMsg($row, $numFloor++, $sthDice);
+                        showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                     }
                     echo "<a id='ending'></a>";
                     echo '<a href="#starting">跳至第一則留言</a>';
@@ -520,7 +546,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) { //發表回應
                     //echo "haha1";
                     $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                     $sthDice->execute(array($row['id']));
-                    showMsg($row, $numFloor++, $sthDice);
+                    showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
                 }
                 echo "<a id='ending'></a>";
                 echo '<a href="#starting">跳至第一則留言</a>';

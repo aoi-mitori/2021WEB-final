@@ -2,13 +2,28 @@
 session_start();
 include("pdoInc.php");
 
-if(isset($_GET['del']) && $_SESSION['is_admin'] == 1){
-    $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? or root_thread_id = ?');
-    $sth->execute(array((int)$_GET['del'], (int)$_GET['del']));
-    echo
-        '<meta http-equiv=REFRESH CONTENT=0;url='.
-        basename($_SERVER['PHP_SELF']).'?id='.(int)$_GET['id'].'>';
-}
+if(isset($_GET['del'])){
+    $sthDel = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
+    $sthDel->execute(array((int)$_GET['del']));
+    $row = $sthDel->fetch(PDO::FETCH_ASSOC);
+    if ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account']){
+        $sth3 = $dbh->prepare('SELECT id FROM my_thread WHERE root_thread_id = ?');
+        $sth3->execute(array( (int)$_GET['del'] ));
+        while($row3 = $sth3->fetch(PDO::FETCH_ASSOC)){
+            $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
+            $sthDelDice->execute(array( (int)$row3['id']));
+        }
+        $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ? or root_thread_id = ?');
+        $sth->execute(array((int)$_GET['del'], (int)$_GET['del']));
+        
+        $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?');
+        $sthDelDice->execute(array( (int)$_GET['del']));
+        echo '<meta http-equiv=REFRESH CONTENT=0;url='.basename($_SERVER['PHP_SELF']).'?id='.(int)$_GET['id'].'>';
+    }
+
+} 
+   
+
  
 $resultStr = " ";
 $sthBoard = $dbh->prepare('SELECT id, name FROM my_board WHERE id = ?');
@@ -38,21 +53,8 @@ if(isset($_GET['id'])  && isset($_POST['title']) && isset($_POST['content'])){
 
                 $lastId = $dbh->lastInsertId();
                 //------------ dice -------------//
-                //$string_title = $_POST['title'];
                 $string_content = $_POST['content'];
                 $regex = "/\([\d\w\-]+\)/";
-                //title
-                // preg_match_all($regex, $string_title, $matches);
-                // foreach ($matches[0] as $word) {
-                //     //type 1 == (oj) : AC / WA / RE
-                //     if($word == "(oj)"){
-                //         $rand_num = rand(0,2);
-                //         $dbh->exec(
-                //             "INSERT INTO my_dice (type, thread_id, number, is_title) VALUES (1, '$lastId', '$rand_num', 1)"
-                //         );
-                //     }
-                // }
-
 
                 //content
                 preg_match_all($regex, $string_content, $matches);
@@ -298,10 +300,12 @@ if(isset($_GET['id'])){
         $sth = $dbh->prepare('SELECT * from my_thread WHERE board_id = ? ORDER BY id');
         $sth->execute(array((int)$_GET['id']));
         while($row = $sth->fetch(PDO::FETCH_ASSOC)){
-            if(isset($_SESSION['account']) && $_SESSION['account'] != null && $_SESSION['is_admin']==1){
-                echo '<a href="'.
-                basename($_SERVER['PHP_SELF']).'?id='.(int)$_GET['id'].'&del='.$row['id'].
-                '"> <i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a> &nbsp&nbsp';
+            if(isset($_SESSION['account']) && $_SESSION['account'] != null){
+                if($_SESSION['is_admin']==1 || $row['account']==$_SESSION['account']){
+                    echo '<a href="'.
+                    basename($_SERVER['PHP_SELF']).'?id='.(int)$_GET['id'].'&del='.$row['id'].
+                    '"> <i class="fas fa-trash-alt" style="color:#005CAF; cursor: hand;" ></i></a> &nbsp&nbsp';
+                }
             }
             echo '<i  class="far fa-smile"></i>&nbsp';
             $sth1 = $dbh->prepare('SELECT point from my_thread where id = ?');
