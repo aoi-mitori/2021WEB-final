@@ -1,7 +1,9 @@
 <?php
 session_start();
 include("pdoInc.php");
-
+header("Cache-Control: no-cache, no-store, must-revalidate"); 
+header("Pragma: no-cache"); 
+header("Expires: 0");
 if(!isset($_SESSION['account'])){
     die('<meta http-equiv=REFRESH CONTENT=0;url=./login.php>');
 }
@@ -47,6 +49,8 @@ else{
 }
 }
 ?>
+
+
  
 <html>
 <head>
@@ -184,6 +188,7 @@ a{
         }
 
     </style>
+<meta http-equiv="pragma" content="no-cache" />       
 </head>
 <body bgcolor="#d4ebfa">
  
@@ -232,9 +237,16 @@ a{
         </table>
     </div> 
  
-<div class="container6">
+<div class="container6"> 
 <?php echo "<font class=\"result1\" >".$resultStr."</font>";?><br>
 <form action="<?php echo basename($_SERVER['PHP_SELF']);?>" method="POST">
+    <img src=" <?php if(isset($_SESSION['account'])){
+    $sth = $dbh->prepare('SELECT path FROM user WHERE account = ?');
+    $sth->execute(array($_SESSION['account']));
+    $row = $sth->fetch(PDO::FETCH_ASSOC);
+    echo $row['path'];
+    }?>" width="20%"><br>
+    <a href="photo.php">修改大頭貼</a><br><br>
     <font class="text">帳號：</font><?php echo $_SESSION['account'];?><br><br>
     <font class="text">暱稱：</font><input type="text" name="nickname" value="<?php echo htmlspecialchars($_SESSION['nickname']);?>"><br>
     <?php echo "<font class=\"result3\">".$resultStr2."</font>";?><br>
@@ -247,6 +259,6 @@ a{
     <br>
     <input class="submit3" type="submit">
 </form>
+        
 </div>
- 
 </body></html>
