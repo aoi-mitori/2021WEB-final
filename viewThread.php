@@ -435,6 +435,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) {
                         <option value="2">只顯示樓主與安價者</option>
                     </select>
                     <input type="submit">
+                    <font id="threadFilterStr"></font>
                 </form>
         <?php
 
@@ -445,6 +446,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) {
 
             if (isset($_POST['filter'])) {
                 if ($_POST['filter'] == 0) { //顯示全部
+                    echo "<script>document.getElementById('threadFilterStr').innerHTML='顯示全部，共".$sth->rowCount()."則留言'</script>";
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
@@ -456,6 +458,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) {
                 } else if ($_POST['filter'] == 1) { //只顯示樓主
                     $ownerThreads = $dbh->prepare('SELECT * from my_thread where id = ? OR (root_thread_id = ? AND account = ?)');
                     $ownerThreads->execute(array((int)$_GET['id'], (int)$_GET['id'], strval($sthOwnerResult[0])));
+                    echo "<script>document.getElementById('threadFilterStr').innerHTML='只顯示樓主，共".$ownerThreads->rowCount()."則留言'</script>";
                     while ($row = $ownerThreads->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
@@ -469,7 +472,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) {
                     //紀錄樓主的骰子
                     $newDiceType = array();
                     $newDiceNum = array();
-                    
+                    $threadNumber = 0; //紀錄留言數量
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         if( count($newDiceNum)==0 && count($newDiceType)==0 && $row['account']==strval($sthOwnerResult[0]) ){ //已經骰完且此樓是樓主
                             $sthNewDice = $dbh->prepare('SELECT * from my_dice WHERE thread_id = ?');
@@ -484,6 +487,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) {
                             $sthDice->execute(array($row['id']));
                             
                             showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
+                            $threadNumber++;
 
                         } else if( count($newDiceNum)!=0 && count($newDiceType)!=0 ){ //還未全部中骰
                             $flag = FALSE;
@@ -504,13 +508,16 @@ if (isset($_GET['id']) && isset($_POST['content'])) {
                                 $sthDice->execute(array($row['id']));
                                 
                                 showMsg($row, $numFloor++, $sthDice, strval($sthOwnerResult[0]));
+                                $threadNumber++;
                             }
                         }
                     }
+                    echo "<script>document.getElementById('threadFilterStr').innerHTML='只顯示樓主與安價者，共".$threadNumber."則留言'</script>";
                     echo "<a id='ending'></a>";//定位標籤
                     echo '<a href="#starting">跳至第一則留言</a>';//跳至第一則留言的連結
 
                 } else{ //顯示全部留言
+                    echo "<script>document.getElementById('threadFilterStr').innerHTML='顯示全部，共".$sth->rowCount()."則留言'</script>";
                     while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                         $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                         $sthDice->execute(array($row['id']));
@@ -520,6 +527,7 @@ if (isset($_GET['id']) && isset($_POST['content'])) {
                     echo '<a href="#starting">跳至第一則留言</a>'; //跳至第一則留言的連結
                 }
             } else { //顯示全部留言
+                echo "<script>document.getElementById('threadFilterStr').innerHTML='顯示全部，共".$sth->rowCount()."則留言'</script>";
                 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
                     $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
                     $sthDice->execute(array($row['id']));

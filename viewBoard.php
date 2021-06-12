@@ -36,57 +36,64 @@ if(isset($_GET['id'])  && isset($_POST['title']) && isset($_POST['content'])){
     }
     else{
         if($_POST['title']!='' && $_POST['content']!='' && isset($_POST['min_point']) && gettype($_POST['min_point']) == 'array'){
-            if($_POST['min_point'][0]>=0 && $_POST['min_point'][0]<=30 && $_POST['min_point'][0]%5==0){
-            $sthBoard->execute(array((int)$_GET['id']));
-            if($sthBoard->rowCount() == 1){
+            if($_POST['min_point'][0]>=0 && $_POST['min_point'][0]<=30 && $_POST['min_point'][0]%5==0){ //如果使用者設定的積分是0,5,10,15,...30
+                //----取得使用者的積分----//
+                $sthUserPoint = $dbh->prepare('SELECT point from user where account = ?');
+                $sthUserPoint->execute(array($_SESSION['account']));
+                $rowUserPoint = $sthUserPoint->fetch(PDO::FETCH_ASSOC);
+                $userPoint = $rowUserPoint['point']; 
 
-                $sth = $dbh->prepare( //新增至資料表
-                    'INSERT INTO my_thread (board_id, nickname, title, content, account, point) VALUES (?, ?, ?, ?, ?, ?)'
-                );
-                $sth->execute(array(
-                    (int)$_GET['id'],
-                    $_SESSION['nickname'],
-                    $_POST['title'],
-                    $_POST['content'],
-                    $_SESSION['account'],
-                    $_POST['min_point'][0]
-                ));
+                if( $_POST['min_point'][0] <= $userPoint){ //如果使用者設定的文章積分<=自己的積分
+                    $sthBoard->execute(array((int)$_GET['id']));
+                    if($sthBoard->rowCount() == 1){
 
-                $lastId = $dbh->lastInsertId(); //取得最新加入的貼文的id
-                //------------ dice -------------//
-                $string_content = $_POST['content'];
-                $regex = "/\([\d\w\-]+\)/";
+                        $sth = $dbh->prepare( //新增至資料表
+                            'INSERT INTO my_thread (board_id, nickname, title, content, account, point) VALUES (?, ?, ?, ?, ?, ?)'
+                        );
+                        $sth->execute(array(
+                            (int)$_GET['id'],
+                            $_SESSION['nickname'],
+                            $_POST['title'],
+                            $_POST['content'],
+                            $_SESSION['account'],
+                            $_POST['min_point'][0]
+                        ));
 
-                preg_match_all($regex, $string_content, $matches);
-                foreach ($matches[0] as $word) {
-                    if($word == "(oj)"){ //type 1 == (oj) : Online Judge骰 -> AC/RE/WA
-                        $rand_num = rand(0,2);
-                        $dbh->exec(
-                            "INSERT INTO my_dice (type, thread_id, number) VALUES (1, '$lastId', '$rand_num')"
-                        );
-                    }else if($word == "(queen-rainbow)"){ //type 2 == (queen-rainbow) : 七彩女王骰
-                        $rand_num = rand(0,5);
-                        $dbh->exec(
-                            "INSERT INTO my_dice (type, thread_id, number) VALUES (2, '$lastId', '$rand_num')"
-                        );
-                    } else if($word == "(dice-six)"){ //type3 == (dice-six) ：六面骰
-                        $rand_num = rand(0,5);
-                        $dbh->exec(
-                            "INSERT INTO my_dice (type, thread_id, number) VALUES (3, '$lastId', '$rand_num')"
-                        );
-                    }
-                }
+                        $lastId = $dbh->lastInsertId(); //取得最新加入的貼文的id
+                        //------------ dice -------------//
+                        $string_content = $_POST['content'];
+                        $regex = "/\([\d\w\-]+\)/";
+
+                        preg_match_all($regex, $string_content, $matches);
+                        foreach ($matches[0] as $word) {
+                            if($word == "(oj)"){ //type 1 == (oj) : Online Judge骰 -> AC/RE/WA
+                                $rand_num = rand(0,2);
+                                $dbh->exec(
+                                    "INSERT INTO my_dice (type, thread_id, number) VALUES (1, '$lastId', '$rand_num')"
+                                );
+                            }else if($word == "(queen-rainbow)"){ //type 2 == (queen-rainbow) : 七彩女王骰
+                                $rand_num = rand(0,5);
+                                $dbh->exec(
+                                    "INSERT INTO my_dice (type, thread_id, number) VALUES (2, '$lastId', '$rand_num')"
+                                );
+                            } else if($word == "(dice-six)"){ //type3 == (dice-six) ：六面骰
+                                $rand_num = rand(0,5);
+                                $dbh->exec(
+                                    "INSERT INTO my_dice (type, thread_id, number) VALUES (3, '$lastId', '$rand_num')"
+                                );
+                            }
+                        }
       
-                //------------ 發文新增點數 -------------//
-                $sth1 = $dbh->prepare('SELECT point from user where account = ?');
-                $sth1->execute(array($_SESSION['account']));
-                $row = $sth1->fetch(PDO::FETCH_ASSOC);
-                $point = $row['point']+5; 
-                $sth2 = $dbh->prepare('UPDATE user SET point = ? WHERE account = ?');
-                $sth2->execute(array($point, $_SESSION['account']));
-                echo '<meta http-equiv=REFRESH CONTENT=0;url=viewBoard.php?id='.(int)$_GET['id'].'>';
+                        //------------ 發文新增點數 -------------//
+                        $point = $rowUserPoint['point']+5; 
+                        $sth2 = $dbh->prepare('UPDATE user SET point = ? WHERE account = ?');
+                        $sth2->execute(array($point, $_SESSION['account']));
+                        echo '<meta http-equiv=REFRESH CONTENT=0;url=viewBoard.php?id='.(int)$_GET['id'].'>';
+                    }
+                } else{
+                    $resultStr = "文章積分不可高於自身的積分！";
+                }
             }
-        }
         }
         else if($_POST['title']=='' && $_POST['content']!=''){
             $resultStr = "請輸入標題！";
