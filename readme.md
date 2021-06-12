@@ -19,8 +19,4 @@
 -  (oj) : Online Judge骰 -> AC/RE/WA 三種可能
 -  (queen-rainbow) : 七彩女王骰 -> 紅/橙/黃/綠/藍/紫 六種可能
 -  (dice-six) : 六面骰 -> 1/2/3/4/5/6 六種可能
-
-
-# TODO List
-- filter保留送出時的狀態
-- 標籤 
+ 
