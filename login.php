@@ -47,7 +47,7 @@ body{
 position: relative;
 width: 100%;
 height: 100vh;    
-background-color:#FFFFFF;
+background-color:#F9F6F0;
 font-family: Noto Sans CJK TC;
 font-size: 16px;    
 }
@@ -66,7 +66,7 @@ z-index:1000;
 h1 {
 position:absolute; 
 left: 30%;
-top: 15%;     
+top: 16%;     
 font-style: normal;
 font-weight: normal;
 font-size: 4.5vmin;
