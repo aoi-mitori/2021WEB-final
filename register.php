@@ -2,184 +2,168 @@
 session_start();
 include("pdoInc.php");
 
-$resultStr = '';
-$resultStr1 = '';
-
+if (isset($_SESSION['account']) && $_SESSION['account'] != null) {
+    header("Location: index.php");
+    }
+                               
 if (isset($_POST['nickname']) && isset($_POST['password']) && isset($_POST['account'])) {
     if ($_POST['nickname'] != '' && $_POST['password'] != '' && $_POST['account'] != '') {
         $pattern = "/[^A-Za-z0-9]/";
-        if (preg_match($pattern, $_POST['account']) || preg_match($pattern, $_POST['password'])) $resultStr1 = "帳號密碼請勿使用字母、數字以外的字元！";
-        else {
+        if (preg_match($pattern, $_POST['account']) || preg_match($pattern, $_POST['password'])){
+            echo "<script type='text/javascript'>";
+		    echo "alert('帳號密碼請勿使用字母、數字以外的字元！');";
+		    echo "</script>";
+        }else {
             $sth = $dbh->prepare('SELECT account FROM user WHERE account = ? ');
             $sth->execute(array($_POST['account']));
             if ($sth->rowCount() != 0) { //帳號已註冊
-                $resultStr = "此帳號已有人使用";
+                echo "<script type='text/javascript'>";
+		        echo "alert('此帳號已有人使用');";
+		        echo "</script>";
             } else {
                 $sth = $dbh->prepare('INSERT INTO user (account, pwd, nickname  ) VALUES (?, md5(?), ?)');
                 $sth->execute(array($_POST['account'], $_POST['password'], $_POST['nickname']));
-                $resultStr1 = "註冊成功";
+                echo "<script type='text/javascript'>";
+		        echo "alert('註冊成功');";
+		        echo "location.href='index.php';";
+		        echo "</script>";
             }
         }
     } else {
-        $resultStr1 = "請完整填寫";
+         echo "<script type='text/javascript'>";
+		 echo "alert('請完整填寫');";
+		 echo "</script>";
     }
 }
 ?>
 
 
 <html>
-
 <head>
-    <!--link rel=stylesheet type="text/css" href="hw4.css"-->
-    <style>
-        body {
-            margin: 0 0 1em 0;
-        }
+<meta name="viewport" content="width=device-width, initial-scale=1">     
+<style>
 
-        .container {
-            font-size: 30px;
-            background-color: #005CAF;
-            margin-top: 0;
-            height: 60px;
-        }
+body{
+position: relative;
+width: 100%;
+height: 100vh;    
+background-color:#F9F6F0;
+font-family: Noto Sans CJK TC;
+font-size: 16px;    
+}
+ 
+#header{
+background-color:#0D3B66;    
+position: fixed;
+width: 100%;
+height: 16%;
+left: 0px;
+top: 0px;
+z-index:1000;     
+}
+    
+    
+h1 {
+position:absolute; 
+left: 30%;
+top: 15%;     
+font-style: normal;
+font-weight: normal;
+font-size: 4.5vmin;
+line-height: 100%;
+color: #FFFFFF;  
+}
 
-        .up-table {
-            padding-top: 13px;
-            margin-right: 30px;
-            width: 100%;
-        }
+.text{
+position: absolute;
+font-size: 2.3vmin;
+line-height: 2.25vmin;    
+color: #000000;        
+}    
+    
+.box{
+position: absolute; 
+width: 28%;
+height: 57%;
+left: 36%;
+top: 30%;
+background: #E1E1E1;
+border: 1px solid #000000;
+box-sizing: border-box;
+border-radius: 10px;       
+}
+    
+.submit{
+position:absolute;
+width: 21%;  
+left: 40%;
+top: 82%;
+}       
+   
+.result{        
+position: absolute;   
+width: 80%;
+height: 10%;
+left: 10%;
+background: #FFFFFF;
+border: 1px solid #000000;
+box-sizing: border-box;
+}
 
-        .up-table td {
-            font-size: 20px;
-        }
-
-        .left-table td {
-            padding-left: 25px;
-        }
-
-        .right-table td {
-            padding-right: 25px;
-        }
-
-        .up-link {
-            color: white;
-            text-decoration: none;
-        }
-
-        .link {
-            color: #113285;
-            font-size: 23px;
-            text-decoration: none;
-        }
-
-        .body-table {
-            margin-top: 20px;
-            margin-left: 40px;
-        }
-
-        .body-table td {
-            padding-top: 10px;
-        }
-
-        #name {
-            padding-right: 10px;
-        }
-
-        .login {
-            color: #f5e8a2;
-        }
-
-        .text {
-            color: #113285;
-            font-size: 20px;
-        }
-
-        .container3 {
-            margin-top: 35px;
-        }
-
-        font {
-            font-family: Microsoft JhengHei;
-        }
-
-        a {
-            font-family: Microsoft JhengHei;
-        }
-
-        .submit {
-            position: relative;
-            left: 85px;
-        }
-
-        .result {
-            color: red;
-            position: relative;
-            right: 40px;
-        }
-
-        .result1 {
-            color: red;
-            font-size: 23px;
-        }
-
-        .upp-link {
-            color: #f5e8a2;
-            text-decoration: none;
-        }
-    </style>
+.photo{
+position: absolute;
+width:18%;    
+left: 15%;
+top: 25%;  
+}
+    
+.image-cropper{
+width: 12vmin;
+height: 12vmin;
+position: absolute;
+overflow: hidden;
+background: #FFFFFF;
+border-radius: 50%;
+}
+    
+.image{
+display: inline;
+margin: 0 auto; 
+height: 100%;
+width: auto;     
+}
+    
+    
+</style>
 </head>
-
-<body bgcolor="#d4ebfa">
-    <div class="container">
-        <table class="up-table" border=0>
-            <tr>
-                <td>
-                    <div align="left">
-                        <table class="left-table" border=0>
-                            <tr>
-                                <?php
-                                echo "<td><a class=\"up-link\" href=\"./index.php\">返回看板列表</a></td>";
-                                if (isset($_SESSION['account']) && $_SESSION['account'] != null) {
-                                    echo "<td class=\"login\"  ><a class=\"upp-link\" href=\"./admin.php\" id=\"name\"><font>Hi, " . $_SESSION['account'] . " (" . htmlspecialchars($_SESSION['nickname']) . ")</font></a></td>";
-                                }
-                                ?>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-                <td>
-                    <div align="right">
-                        <table class="right-table" border=0>
-                            <tr>
-                                <?php
-                                if (isset($_SESSION['account']) && $_SESSION['account'] != null) { //如果登入
-                                    echo "<td><a class=\"up-link\" href=\"./edit_profile.php\">修改資料</a></td>";
-                                    echo "<td><a class=\"up-link\" href=\"./logout.php\">登出</a></td>";
-                                } else {
-                                    echo " <td><a class=\"up-link\" href=\"./login.php\">登入</a></td>";
-                                }
-                                ?>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
-
+<body>
+    
+    <header id="header">
+        <a href="index.php"><img src="./photos/images/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;"/></a>
+        <h1>註冊</h1>
+    </header>
+    
+    <img src="./photos/images/ICON.png" style="position:relative;width:6%;left:47%;
+top:24%;;z-index:100;"/>
     <center>
-        <div class="container3">
-            <?php echo "<font class=\"result1\">" . $resultStr1 . "</font>"; ?><br><br>
+        <div class="box">
             <form action="<?php echo basename($_SERVER['PHP_SELF']); ?>" method="POST">
-                <font class="text">帳號：</font><input type="text" name="account" placeholder="必填"><br>
-                <?php echo "<font class=\"result\">" . $resultStr . "</font>"; ?><br>
-                <font class="text">暱稱：</font><input type="text" name="nickname" placeholder="必填"><br><br>
-                <font class="text">密碼：</font><input type="password" name="password" placeholder="必填"><br>
-                <br>
-                <input class="submit" type="submit">
+            <div>
+                <label for="username" class="text" style="top:17%;left: 10%;">帳號</label>
+                <input type="text" style="top:23%;" class="result"name="account">
+            </div>
+            <div >
+                <label for="name" class="text" style="top:38%;left: 10%;">暱稱</label>
+                <input type="text" class="result" style="top:44%;" name="nickname">
+            </div>    
+            <div class="form-group">
+                <label for="password" class="text" style="top:59%;left: 10%;">密碼</label>
+                <input type="password" class="result" style="top:65%;" name="password">
+            </div>
+                <Input Type="Image" class="submit" onclick="submit()" Src="./photos/images/send.png" />   
             </form>
         </div>
     </center>
+    
 </body>
-
 </html>

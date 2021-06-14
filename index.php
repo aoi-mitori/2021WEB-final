@@ -150,54 +150,95 @@ include("pdoInc.php");
             border-color: #0D3B66;
             border-radius: 10px;
         }
+        
+        
+        #header{
+            background-color:#0D3B66;    
+            position: fixed;
+            width: 100%;
+            height: 16%;
+            left: 0px;
+            top: 0px;
+            z-index:1000;     
+        }
+        
+        
+        .text{
+            position: absolute;
+            font-size: 2.3vmin;
+            line-height: 2.25vmin;    
+            color: #000000;        
+        }
+        
+        .photo{
+            position: absolute; 
+            width: 40%;
+            height: 40%;   
+         }
+
+        .image-cropper{
+            width: 12vmin;
+            height: 12vmin;
+            position: absolute;
+            overflow: hidden;
+            background: #FFFFFF;
+            border-radius: 50%;
+         }
+
+        .image{
+            display: inline;
+            margin: 0 auto;
+            height: 100%;
+            width: auto;     
+         }
+        
     </style>
 </head>
 
 <body bgcolor="#F9F6F0">
-    <div class="container">
-        <table class="up-table" border=0>
-            <tr>
-                <td>
-                    <div align="left">
-                        <table class="left-table" border=0>
-                            <tr>
-                                <?php
-                                echo "<td><font><a class=\"up-link\" href=\"./index.php\">返回看板列表</a></font></td>";
-                                if ($_SESSION['is_admin'] == 1) { // 管理員
-                                    echo "<td><font><a class=\"up-link\" href=\"./admin.php\">新增看板</a></font></td>";
-                                }
-                                if (isset($_SESSION['account']) && $_SESSION['account'] != null) {  //如果登入，顯示Hi,暱稱     
-                                    echo "<td class=\"login\"  ><a class=\"upp-link\" href=\"./admin.php\" id=\"name\"><font>Hi, " . $_SESSION['account'] . " (" . htmlspecialchars($_SESSION['nickname']) . ")</font></a></td>";
-                                    echo "<td style=\"color:#f7efc1; \"><i class=\"far fa-smile\"></i>";
-                                    $sth = $dbh->prepare('SELECT point from user where account = ?');
-                                    $sth->execute(array($_SESSION['account']));
-                                    $row = $sth->fetch(PDO::FETCH_ASSOC);
-                                    echo "&nbsp&nbsp&nbsp" . $row['point'] . "</td>";
-                                }
-                                ?>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-                <td>
-                    <div align="right">
-                        <table class="right-table" border=0>
-                            <tr>
-                                <?php
-                                if (isset($_SESSION['account']) && $_SESSION['account'] != null) { //如果登入，顯示修改資料、登出連結
-                                    echo "<td><font><a class=\"up-link\" href=\"./edit_profile.php\">修改資料</a></font></td>";
-                                    echo "<td><font><a class=\"up-link\" href=\"./logout.php\">登出</a></font></td>";
-                                } else { //未登入，顯示註冊連結
-                                    echo "<td><font><a class=\"up-link\" href=\"./register.php\">註冊</a></font></td> <td><font><a class=\"up-link\" href=\"./login.php\">登入</a></font></td>";
-                                }
-                                ?>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+    <header id="header">
+        <a href="index.php"><img src="./photos/images/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;"/></a>
+
+        <?php if ($_SESSION['is_admin'] == 1) { ?>
+        <a href="admin.php"><img src="./photos/images/admin.png" style="position:relative; width: 8%;left:37%;top: 13%;"/></a>
+        <?php } ?>
+         
+        <?php if(isset($_SESSION['account']) && $_SESSION['account'] != null){ ?>
+        <div class="text" style="color:#FFFFFF;top:25%;left:68%;">    
+        <?php echo $_SESSION['nickname'] ?>   
+        </div>
+        <div class="text" style="color:#FFFFFF;top:55%;left:68%;">    
+        積分:<?php $sth = $dbh->prepare('SELECT point from user where account = ?');
+              $sth->execute(array($_SESSION['account']));
+              $row = $sth->fetch(PDO::FETCH_ASSOC);
+              echo "&nbsp&nbsp&nbsp".$row['point']."</td>"; ?>   
+        </div>
+        <div class="photo" style="top:13%;left:75%;">
+            <div class="image-cropper"><img src="<?php if(isset($_SESSION['account'])){
+                $sth = $dbh->prepare('SELECT path FROM user WHERE account = ?');
+                $sth->execute(array($_SESSION['account']));
+                $row = $sth->fetch(PDO::FETCH_ASSOC);
+                    if($row['path']!=''){
+                        echo $row['path'];
+                    }}?>" class="image"/>
+            </div>
+        </div>        
+        <div>    
+        <a href="edit_profile.php"><img src="./photos/images/edit.png" style="position:absolute;width:8%;left:83%;
+top:15%;"/></a>    
+        <a href="logout.php"><img src="./photos/images/logout.png" style="position:absolute;width:8%;left:83%;
+top:55%;"/></a>  
+        </div>     
+        <?php }else{ ?>
+        <a href="register.php"><img src="./photos/images/register.png" style="position:absolute;width:8%;left:83%;
+top:15%;"/></a>    
+        <a href="login.php"><img src="./photos/images/login.png" style="position:absolute;width:8%;left:83%;
+top:55%;"/></a>     
+    
+<?php } ?>
+        
+    </header>
+<br><br><br><br><br><br>
 
     <!-- <div class="container2">
         <table class="body-table">
