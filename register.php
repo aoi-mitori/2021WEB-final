@@ -128,8 +128,7 @@ border-radius: 50%;
     
 .image{
 display: inline;
-margin: 0 auto;
-margin-left: -25%; 
+margin: 0 auto; 
 height: 100%;
 width: auto;     
 }

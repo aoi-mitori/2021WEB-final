@@ -160,8 +160,7 @@ border-radius: 50%;
     
 .image{
 display: inline;
-margin: 0 auto;
-margin-left: -25%; 
+margin: 0 auto;   
 height: 100%;
 width: auto;     
 }
@@ -186,15 +185,14 @@ width: auto;
         </div>
 
             
-        <div class="photo" style="top:13%;left:75%;">
+        <div class="photo" style="top:12%;left:75%;">
             <div class="image-cropper"><img src="<?php if(isset($_SESSION['account'])){
                 $sth = $dbh->prepare('SELECT path FROM user WHERE account = ?');
                 $sth->execute(array($_SESSION['account']));
                 $row = $sth->fetch(PDO::FETCH_ASSOC);
                     if($row['path']!=''){
                         echo $row['path'];
-                    }else{
-                        echo './photos/images/photo.png';}}?>" class="image"/>
+                    }}?>" class="image"/>
             </div>
         </div>        
         <div>    
@@ -210,7 +208,7 @@ top:55%;"/></a>
 top:24%;;z-index:100;"/>
     <center>
         <div class="box">
-            <div class="text" style="color:#000000;top:15%;left:20%;">    
+            <div class="text" style="color:#000000;top:15%;left:18%;">    
             <?php echo $_SESSION['account'] ?>   
             </div>
             <div class="photo" style="left: 12%;top: 24%;">
@@ -220,10 +218,9 @@ top:24%;;z-index:100;"/>
                 $row = $sth->fetch(PDO::FETCH_ASSOC);
                     if($row['path']!=''){
                         echo $row['path'];
-                    }else{
-                        echo './photos/images/photo.png';}}?>" class="image" /></div></div>
+                    }}?>" class="image" /></div></div>
             <p>建議使用正方形圖片</p>    
-            <a href="photo.php"><img src="./photos/images/edit_photo.png" style="position:absolute; width: 18%;left: 14.5%;top: 73%;"/></a>
+            <a href="photo.php"><img src="./photos/images/edit_photo.png" style="position:absolute; width: 18%;left: 14%;top: 73%;"/></a>
             
             <form action="<?php echo basename($_SERVER['PHP_SELF']);?>" method="POST">
                 <div>

@@ -127,8 +127,7 @@ border-radius: 50%;
     
 .image{
 display: inline;
-margin: 0 auto;
-margin-left: -25%; 
+margin: 0 auto; 
 height: 100%;
 width: auto;     
 }
@@ -140,11 +139,11 @@ width: auto;
 <body>
     
     <header id="header">
-        <a href="index.php"><img src="./photos/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;"/></a>
+        <a href="index.php"><img src="./photos/images/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;"/></a>
         <h1>登入</h1>
     </header>
     
-    <img src="./photos/ICON.png" style="position:relative;width:6%;left:47%;
+    <img src="./photos/images/ICON.png" style="position:relative;width:6%;left:47%;
 top:28%;;z-index:100;"/>
     <center>
         <div class="box">
@@ -157,7 +156,7 @@ top:28%;;z-index:100;"/>
                 <label for="password" class="text" style="top:47%;left:10%;">密碼</label>
                 <input type="password" class="result" style="top:55%;" name="password">
             </div>
-                <Input Type="Image" class="submit" onclick="submit()" Src="./photos/send.png" />   
+                <Input Type="Image" class="submit" onclick="submit()" Src="./photos/images/send.png" />   
             </form>
         </div>
     </center>
