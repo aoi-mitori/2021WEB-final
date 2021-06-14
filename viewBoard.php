@@ -21,9 +21,8 @@ include("pdoInc.php");
 
         .container {
             font-size: 30px;
-            background-color: #005CAF;
-            margin-top: 0;
-            height: 60px;
+            background-color: #0d3b66;
+            height: 100px;
         }
 
         .up-table {
@@ -346,6 +345,7 @@ include("pdoInc.php");
             height: 200px;
             border: solid #0D3B66 1px;
             background-color: #F9F6F0;
+            position: relative;
         }
 
 
@@ -354,11 +354,12 @@ include("pdoInc.php");
             display: flex;
             align-items: flex-start;
             /* margin: 0 auto; */
-            margin-top: 10px;
+            /* margin-top: 10px;
             margin-left: 10px;
-            margin-right: 10px;
+            margin-right: 10px; */
             /* margin-bottom: 10px; */
             /* margin-bottom: 20px; */
+            padding: 10px 10px;
             width: 100%;
             height: 75%;
 
@@ -369,7 +370,7 @@ include("pdoInc.php");
             /* margin: 0 auto;
             margin-top: 20px;
             margin-bottom: 20px; */
-            margin-right: 20px;
+            /* margin-right: 20px; */
             max-width: 130px;
             height: 130px;
             /* height: 130px; */
@@ -380,6 +381,7 @@ include("pdoInc.php");
             /* display: inline; */
             width: 80%;
             height: auto;
+            /* position: relative; */
             /* margin: 0 auto; */
 
         }
@@ -419,15 +421,11 @@ include("pdoInc.php");
         }
 
         .app>.right-col>.topic-block>.info-block>.content-info>a>.deleteBtn {
-            width: 10%;
-            /* margin: 0 auto; */
-            margin-top: -70px;
-            /* margin-bottom: 20px; */
-            float: right;
-            margin-left: 20px;
-            width: 30px;
-            height: 30px;
-
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
         }
 
         .app>.right-col>.topic-block>.nickname {
@@ -448,12 +446,13 @@ include("pdoInc.php");
             /* font-family: 'Noto Sans TC', sans-serif;
             font-size: 12px;
             border-radius: 20px; */
-            margin-right: 40px;
-            width: 100px;
-            height: 30px;
-            color: #F9F6F0;
+            /* margin-right: 40px; */
+            /* width: 100px; */
+            /* height: 30px; */
             /* background-color: black; */
-            float: right;
+            bottom: 10px;
+            right: 10px;
+            position: absolute;
         }
     </style>
     <script defer src="https://use.fontawesome.com/releases/v5.0.10/js/all.js" integrity="sha384-slN8GvtUJGnv6ca26v8EzVaR9DC58QEwsIk9q1QXdCU8Yu8ck/tL/5szYlBbqmS+" crossorigin="anonymous"></script>
@@ -695,9 +694,33 @@ include("pdoInc.php");
                 $row1 = $sth1->fetch(PDO::FETCH_ASSOC);
                 echo "<h5>積分限制：</h5>" . $row1['point'];
 
-                // <!-- 內容 -->
 
-                echo '<p>' . htmlspecialchars($row['content']) . '</p>';
+                //-------dice-------//
+                $regex = "/\([\d\w\-]+\)/";
+                $msg = htmlspecialchars($row['content']);
+                preg_match_all($regex, $msg, $matches);
+
+                $sthDice = $dbh->prepare("SELECT * from my_dice WHERE thread_id = ? ORDER BY id");
+                $sthDice->execute(array($row['id']));
+
+                foreach ($matches[0] as $word) { //type 1 == (oj) : Online Judge骰 -> AC/RE/WA
+                    if ($word == "(oj)") {
+                        $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
+                        $src = "<img src='./ankaDice/oj" . $rowMSG['number'] . ".png'>";
+                        $msg = preg_replace("/\(oj\)/", $src, $msg, 1);
+                    } else if ($word == "(queen-rainbow)") { //type 2 == (queen-rainbow) : 七彩女王骰
+                        $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
+                        $src = "<img src='./ankaDice/queen" . $rowMSG['number'] . ".png'>";
+                        $msg = preg_replace("/\(queen-rainbow\)/", $src, $msg, 1);
+                    } else if ($word == "(dice-six)") { //type3 == (dice-six) ：六面骰
+                        $rowMSG = $sthDice->fetch(PDO::FETCH_ASSOC);
+                        $src = "<img src='./ankaDice/dice" . $rowMSG['number'] . ".png'>";
+                        $msg = preg_replace("/\(dice-six\)/", $src, $msg, 1);
+                    }
+                }
+                $msg = str_replace("\n", "<br>", $msg);
+                // <!-- 內容 -->
+                echo '<p>' . $msg . '</p>';
 
 
                 if (isset($_SESSION['account']) && $_SESSION['account'] != null) { //顯示刪除貼文按鈕
