@@ -188,7 +188,6 @@ include("pdoInc.php");
         .image{
             display: inline;
             margin: 0 auto;
-            margin-left: -25%; 
             height: 100%;
             width: auto;     
          }
@@ -199,7 +198,10 @@ include("pdoInc.php");
 <body bgcolor="#F9F6F0">
     <header id="header">
         <a href="index.php"><img src="./photos/images/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;"/></a>
-        
+
+        <?php if ($_SESSION['is_admin'] == 1) { ?>
+        <a href="admin.php"><img src="./photos/images/admin.png" style="position:relative; width: 8%;left:37%;top: 13%;"/></a>
+        <?php } ?>
          
         <?php if(isset($_SESSION['account']) && $_SESSION['account'] != null){ ?>
         <div class="text" style="color:#FFFFFF;top:25%;left:68%;">    
@@ -218,8 +220,7 @@ include("pdoInc.php");
                 $row = $sth->fetch(PDO::FETCH_ASSOC);
                     if($row['path']!=''){
                         echo $row['path'];
-                    }else{
-                        echo './photos/images/photo.png';}}?>" class="image"/>
+                    }}?>" class="image"/>
             </div>
         </div>        
         <div>    
