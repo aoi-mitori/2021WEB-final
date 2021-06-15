@@ -1,6 +1,27 @@
 <?php
 session_start();
 include("pdoInc.php");
+
+
+$sth2 = $dbh->prepare('SELECT point from my_thread where id = ?');
+$sth2->execute(array($_GET['id']));
+$row2 = $sth2->fetch(PDO::FETCH_ASSOC);
+if($row2['point']>0){
+    if(!isset($_SESSION['account'])){
+        echo "權限不足，請先登入:(";
+        die('<meta http-equiv=REFRESH CONTENT=3;url=./index.php>');
+    }
+    else{
+        $sth = $dbh->prepare('SELECT point from user where account = ?');
+        $sth->execute(array($_SESSION['account']));
+        $row = $sth->fetch(PDO::FETCH_ASSOC);
+        if($row['point']<$row2['point']){
+            echo "權限不足:(";
+            die('<meta http-equiv=REFRESH CONTENT=3;url=./index.php>');
+        }
+    }
+}
+
 ?>
 
 
