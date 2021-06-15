@@ -22,6 +22,30 @@ if($row2['point']>0){
     }
 }
 
+   //-----刪除留言-----//
+   if (isset($_GET['del'])) {
+    $sthDel = $dbh->prepare('SELECT * FROM my_thread WHERE id = ?');
+    $sthDel->execute(array((int)$_GET['del']));
+    $row = $sthDel->fetch(PDO::FETCH_ASSOC);
+
+    $sthOwnerTitle = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
+    $sthOwnerTitle->execute(array((int)$row['root_thread_id']));
+    $rowOwnerTitle = $sthOwnerTitle->fetch(PDO::FETCH_ASSOC);
+
+
+    if ( (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1 )|| $_SESSION['account'] == $rowOwnerTitle['account']) { //管理員or貼文擁有者有權刪除貼文
+        $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ?'); //刪除貼文與其留言
+        $sth->execute(array((int)$_GET['del']));
+
+        $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?'); //刪除貼文的骰子
+        $sthDelDice->execute(array((int)$_GET['del']));
+        echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
+    }
+}
+?>
+
+
+
 ?>
 
 
@@ -587,7 +611,8 @@ top:55%;" /></a>
         }
         echo '<div class="msg">';
 
-        if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account'])) { //管理員顯示刪除留言按鈕
+
+        if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $owner)) { //管理員顯示刪除留言按鈕
             if ($numFloor != 0) {
                 echo '<a href="' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
                     '"><img class="del-btn" src="./img/Delete.png"></a>';
