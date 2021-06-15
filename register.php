@@ -25,7 +25,7 @@ if (isset($_POST['nickname']) && isset($_POST['password']) && isset($_POST['acco
                 $sth->execute(array($_POST['account'], $_POST['password'], $_POST['nickname'],'./photos/images/DefaultProfile.png'));
                 echo "<script type='text/javascript'>";
 		        echo "alert('註冊成功');";
-		        echo "location.href='index.php';";
+		        echo "location.href='login.php';";
 		        echo "</script>";
             }
         }
