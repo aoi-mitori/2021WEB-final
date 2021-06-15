@@ -827,12 +827,13 @@ top:55%;" /></a>
                 $rowUserPoint = $sthUserPoint->fetch(PDO::FETCH_ASSOC);
                 $userPoint = $rowUserPoint['point'];
                 //if ($row1['point']<=$rowUserPoint['point']){
+                 //}
+                }
                 echo
                 '
                 <a href="viewThread.php?id=' . $row['id'] . '">' . '<img class="seeMoreBtn" src="./img/seemore.png" alt="">' . '</a> 
                 
-            </div>'; //}
-        }
+            </div>';
             }  
         } else {
             echo '看板不存在';
