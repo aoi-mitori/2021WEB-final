@@ -807,7 +807,7 @@ top:55%;" /></a>
 
 
                 if (isset($_SESSION['account']) && $_SESSION['account'] != null) { //顯示刪除貼文按鈕
-                    if ($_SESSION['is_admin'] == 1 || $row['account'] == $_SESSION['account']) {
+                    if ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account']) {
                         echo '<a href="' .
                             basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
                             '">
@@ -821,12 +821,18 @@ top:55%;" /></a>
 
                 //暱稱
                 echo '<h5 class="nickname">' . htmlspecialchars($row['nickname']) . '</h5>';
+                if (isset($_SESSION['account']) && $_SESSION['account'] != null) { 
+                $sthUserPoint = $dbh->prepare('SELECT point from user where account = ?');
+                $sthUserPoint->execute(array($_SESSION['account']));
+                $rowUserPoint = $sthUserPoint->fetch(PDO::FETCH_ASSOC);
+                $userPoint = $rowUserPoint['point'];
+                if ($row1['point']<=$rowUserPoint['point']){
                 echo
                 '
-                <a href="viewThread.php?id=' . $row['id'] . '">' . '<img class="seeMoreBtn" src="./img/seemore.png" alt="">' . '</a>
+                <a href="viewThread.php?id=' . $row['id'] . '">' . '<img class="seeMoreBtn" src="./img/seemore.png" alt="">' . '</a> 
                 
-            </div>';
-            }
+            </div>'; }}
+            }  
         } else {
             echo '看板不存在';
         }

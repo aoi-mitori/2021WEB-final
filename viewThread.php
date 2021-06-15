@@ -566,7 +566,7 @@ top:55%;" /></a>
         }
         echo '<div class="msg">';
 
-        if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $owner == $_SESSION['account'])) { //管理員與樓主顯示刪除留言按鈕
+        if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account'])) { //管理員顯示刪除留言按鈕
             if ($numFloor != 0) {
                 echo '<a href="' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
                     '"><img class="del-btn" src="./img/Delete.png"></a>';
