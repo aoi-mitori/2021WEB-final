@@ -21,8 +21,8 @@ if (isset($_POST['nickname']) && isset($_POST['password']) && isset($_POST['acco
 		        echo "alert('此帳號已有人使用');";
 		        echo "</script>";
             } else {
-                $sth = $dbh->prepare('INSERT INTO user (account, pwd, nickname  ) VALUES (?, md5(?), ?)');
-                $sth->execute(array($_POST['account'], $_POST['password'], $_POST['nickname']));
+                $sth = $dbh->prepare('INSERT INTO user (account, pwd, nickname,path) VALUES (?, md5(?), ?, ?)');
+                $sth->execute(array($_POST['account'], $_POST['password'], $_POST['nickname'],'./photos/DefaultProfile.png'));
                 echo "<script type='text/javascript'>";
 		        echo "alert('註冊成功');";
 		        echo "location.href='index.php';";
