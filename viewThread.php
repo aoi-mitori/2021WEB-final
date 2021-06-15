@@ -504,6 +504,7 @@ if($row2['point']>0){
         .app>.right-column>.rule {
             background-color: #FFFFFF;
             border: 1px solid #000;
+            padding: 10px;
             /* display: flex; */
             width: 75%;
             margin: 0 auto;
@@ -965,14 +966,18 @@ top:55%;" /></a>
         </div>
         <div class="right-column">
             <div class="rule">
-                安價規則：
-                樓主會問一個問題，並丟出骰子<br>
-                參與者留言回覆樓主的問題並丟出骰子，樓主會取骰出同骰的留言作為答案<br><br>
-                如何丟骰子：在留言中輸入骰子語法並送出<br><br>
-                可用骰子語法：<br>
-                <img src="./ankaDice/dice-six.gif" alt="this slowpoke moves" /> (dice-six)：丟一顆六面骰子 <br>
-                <img src="./ankaDice/queen.gif" alt="this slowpoke moves" /> (queen-rainbow)：看看英國女王的繽紛穿搭<br>
-                <img src="./ankaDice/oj.gif" alt="this slowpoke moves" /> (oj)：你今天AC了嗎?<br>
+            <b>安價規則：</b><br>
+            樓主會問一個問題，並丟出骰子，
+            參與者留言回覆樓主的問題並丟出骰子，樓主會取骰出同骰的留言作為答案<br><br>
+            <b>如何丟骰子：</b><br>
+            在留言中輸入骰子語法並送出<br><br>
+            <b>可用骰子語法：</b><br>
+            <img src="./ankaDice/dice-six.gif" alt="this slowpoke moves" /> <br>
+            (dice-six)：丟一顆六面骰子 <br><br>
+            <img src="./ankaDice/queen.gif" alt="this slowpoke moves" /> <br>
+            (queen-rainbow)：看看英國女王的繽紛穿搭<br><br>
+            <img src="./ankaDice/oj.gif" alt="this slowpoke moves" /> <br>
+            (oj)：你今天AC了嗎?<br><br>
             </div>
         </div>
     </div>
