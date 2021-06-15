@@ -658,6 +658,7 @@ top:55%;" /></a>
                     $sthTt = $dbh->prepare("SELECT title from my_thread WHERE id = ?");
                     $sthTt->execute(array($_GET['id']));
                     $sthTtResult = $sthTt->fetch();
+                    $sthTtResult = htmlspecialchars($sthTtResult);
                     echo '<h3>' . strval($sthTtResult[0]) . '</h3>';
                     ?>
 
