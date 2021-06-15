@@ -162,6 +162,45 @@ include("pdoInc.php");
             text-decoration: none;
         }
 
+        #header {
+            background-color: #0D3B66;
+            position: fixed;
+            width: 100%;
+            height: 16%;
+            left: 0px;
+            top: 0px;
+            z-index: 1000;
+        }
+
+        .text {
+            position: absolute;
+            font-size: 2.3vmin;
+            line-height: 2.25vmin;
+            color: #000000;
+        }
+
+        .photo {
+            position: absolute;
+            width: 40%;
+            height: 40%;
+        }
+
+        .image-cropper {
+            width: 12vmin;
+            height: 12vmin;
+            position: absolute;
+            overflow: hidden;
+            background: #FFFFFF;
+            border-radius: 50%;
+        }
+
+        .image {
+            display: inline;
+            margin: 0 auto;
+            height: 100%;
+            width: auto;
+        }
+
         /* ----- */
         .app {
             display: flex;
@@ -365,22 +404,44 @@ include("pdoInc.php");
 
         }
 
-        .app>.right-col>.topic-block>.info-block>.sticker {
+        .app>.right-col>.topic-block>.info-block>.photo1 {
+            /* display: flex;
+            align-items: flex-start; */
+            /* margin: 0 auto; */
+            /* margin-top: 10px;
+            margin-left: 10px;
+            margin-right: 10px; */
+            /* margin-bottom: 10px; */
+            /* margin-bottom: 20px; */
+            /* padding: 10px 10px;
+            width: 100%;
+            height: 75%; */
+            width: 12vmin;
+            height: 12vmin;
+            /* position: absolute; */
+        }
+
+        .app>.right-col>.topic-block>.info-block>.photo1>.image-cropper>.sticker {
             /* display: block; */
             /* margin: 0 auto;
             margin-top: 20px;
             margin-bottom: 20px; */
             /* margin-right: 20px; */
-            max-width: 130px;
-            height: 130px;
+            /* max-width: 130px;
+            height: 130px; */
             /* height: 130px; */
             /* clip-path: circle(100px at center); */
+            display: inline;
+            margin: 0 auto;
+            height: 100%;
+            width: auto;
         }
 
         .app>.right-col>.topic-block>.info-block>.content-info {
             /* display: inline; */
             width: 80%;
             height: auto;
+            padding-left: 20px;
             /* position: relative; */
             /* margin: 0 auto; */
 
@@ -432,14 +493,17 @@ include("pdoInc.php");
             /* font-family: 'Noto Sans TC', sans-serif;
             font-size: 12px;
             border-radius: 20px; */
-            display: inline;
+            /* display: inline; */
             font-family: 'Noto Sans TC', sans-serif;
             font-size: 14px;
             color: #000;
-            margin: 0;
-            margin-left: 20px;
+            position: absolute;
+            left: 30px;
+            bottom: 40px;
+            /* margin: 0; */
+            /* margin-left: 20px; */
             /* background-color: black; */
-            float: left;
+            /* float: left; */
         }
 
         .app>.right-col>.topic-block>a>.seeMoreBtn {
@@ -486,48 +550,50 @@ include("pdoInc.php");
 
 
 
-    <div class="container">
-        <table class="up-table" border=0>
-            <tr>
-                <td>
-                    <div align="left">
-                        <table class="left-table" border=0>
-                            <tr>
-                                <?php
-                                echo "<td><a class=\"up-link\" href=\"./index.php\">返回看板列表</a></td>";
+    <header id="header">
+        <a href="index.php"><img src="./photos/images/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;" /></a>
 
-                                if (isset($_SESSION['account']) && $_SESSION['account'] != null) { //如果登入，顯示暱稱等等    
-                                    echo "<td class=\"login\"  ><a class=\"upp-link\" href=\"./admin.php\" id=\"name\"><font>Hi, " . $_SESSION['account'] . " (" . htmlspecialchars($_SESSION['nickname']) . ")</font></a></td>";
-                                    echo "<td style=\"color:#f7efc1; \"><i class=\"far fa-smile\"></i>";
-                                    $sth = $dbh->prepare('SELECT point from user where account = ?');
-                                    $sth->execute(array($_SESSION['account']));
-                                    $row = $sth->fetch(PDO::FETCH_ASSOC);
-                                    echo "&nbsp&nbsp&nbsp" . $row['point'] . "</td>";
-                                }
-                                ?>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-                <td>
-                    <div align="right">
-                        <table class="right-table" border=0>
-                            <tr>
-                                <?php
-                                if (isset($_SESSION['account']) && $_SESSION['account'] != null) { //如果登入，顯示修改資料、登出連結
-                                    echo "<td><a class=\"up-link\" href=\"./edit_profile.php\">修改資料</a></td>";
-                                    echo "<td><a class=\"up-link\" href=\"./logout.php\">登出</a></td>";
-                                } else { //未登入，顯示註冊連結
-                                    echo "<td><a class=\"up-link\" href=\"./register.php\">註冊</a></td> <td><a class=\"up-link\" href=\"./login.php\">登入</a></td>";
-                                }
-                                ?>
-                            </tr>
-                        </table>
-                    </div>
-                </td>
-            </tr>
-        </table>
-    </div>
+        <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) { ?>
+            <a href="admin.php"><img src="./photos/images/admin.png" style="position:relative; width: 8%;left:37%;top: 17%;" /></a>
+        <?php } ?>
+
+        <?php if (isset($_SESSION['account']) && $_SESSION['account'] != null) { ?>
+            <div class="text" style="color:#FFFFFF;top:25%;left:68%;">
+                <?php echo $_SESSION['nickname'] ?>
+            </div>
+            <div class="text" style="color:#FFFFFF;top:55%;left:68%;">
+                積分:<?php $sth = $dbh->prepare('SELECT point from user where account = ?');
+                    $sth->execute(array($_SESSION['account']));
+                    $row = $sth->fetch(PDO::FETCH_ASSOC);
+                    echo "&nbsp&nbsp&nbsp" . $row['point'] . "</td>"; ?>
+            </div>
+            <div class="photo" style="top:13%;left:75%;">
+                <div class="image-cropper"><img src="<?php if (isset($_SESSION['account'])) {
+                                                            $sth = $dbh->prepare('SELECT path FROM user WHERE account = ?');
+                                                            $sth->execute(array($_SESSION['account']));
+                                                            $row = $sth->fetch(PDO::FETCH_ASSOC);
+                                                            if ($row['path'] != '') {
+                                                                echo $row['path'];
+                                                            }
+                                                        } ?>" class="image" />
+                </div>
+            </div>
+            <div>
+                <a href="edit_profile.php"><img src="./photos/images/edit.png" style="position:absolute;width:8%;left:83%;
+top:15%;" /></a>
+                <a href="logout.php"><img src="./photos/images/logout.png" style="position:absolute;width:8%;left:83%;
+top:55%;" /></a>
+            </div>
+        <?php } else { ?>
+            <a href="register.php"><img src="./photos/images/register.png" style="position:absolute;width:8%;left:83%;
+top:15%;" /></a>
+            <a href="login.php"><img src="./photos/images/login.png" style="position:absolute;width:8%;left:83%;
+top:55%;" /></a>
+
+        <?php } ?>
+
+    </header>
+    <br><br><br><br><br><br>
 
 
 
@@ -539,7 +605,7 @@ include("pdoInc.php");
         $sthBoard = $dbh->prepare('SELECT id, name FROM my_board WHERE id = ?');
         $sthBoard->execute(array((int)$_GET['id']));
         if ($sthBoard->rowCount() == 1) {
-            $row = $sthBoard->fetch(PDO::FETCH_ASSOC)
+            $row = $sthBoard->fetch(PDO::FETCH_ASSOC);
     ?>
 
             <div class="app">
@@ -664,17 +730,34 @@ include("pdoInc.php");
 
             <?php
             //----顯示貼文----//
-            $sth = $dbh->prepare('SELECT * from my_thread WHERE board_id = ? ORDER BY id');
-            $sth->execute(array((int)$_GET['id']));
+            $sthTd = $dbh->prepare('SELECT * from my_thread WHERE board_id = ? ORDER BY id');
+            $sthTd->execute(array((int)$_GET['id']));
 
-            while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
+            while ($row = $sthTd->fetch(PDO::FETCH_ASSOC)) {
+
+                // echo
+                // '<div class="topic-block">' .
+                //     '<div class="info-block">' .
+                //     '<img src="大頭貼位址" alt="" class="sticker">
+                //     <div class="content-info">';
 
                 echo
                 '<div class="topic-block">' .
                     '<div class="info-block">' .
-                    '<img src="大頭貼位址" alt="" class="sticker">
-                    <div class="content-info">';
-
+                    '<div class="photo1">
+                    <div class="image-cropper">
+                    <img src="';
+                // if (isset($_SESSION['account'])) {
+                $sthImg1 = $dbh->prepare('SELECT path FROM user WHERE account = ?');
+                $sthImg1->execute(array($row['account']));
+                $rowImg1 = $sthImg1->fetch(PDO::FETCH_ASSOC);
+                if ($rowImg1['path'] != '') {
+                    echo $rowImg1['path'];
+                }
+                // }
+                echo '" class="sticker" />
+                </div></div>
+                ' . '<div class="content-info">';
 
 
 
@@ -689,9 +772,9 @@ include("pdoInc.php");
 
                 // <!-- 積分 -->
 
-                $sth1 = $dbh->prepare('SELECT point from my_thread where id = ?');
-                $sth1->execute(array((int)$row['id']));
-                $row1 = $sth1->fetch(PDO::FETCH_ASSOC);
+                $sthPoint = $dbh->prepare('SELECT point from my_thread where id = ?');
+                $sthPoint->execute(array((int)$row['id']));
+                $row1 = $sthPoint->fetch(PDO::FETCH_ASSOC);
                 echo "<h5>積分限制：</h5>" . $row1['point'];
 
 

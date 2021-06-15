@@ -150,95 +150,95 @@ include("pdoInc.php");
             border-color: #0D3B66;
             border-radius: 10px;
         }
-        
-        
-        #header{
-            background-color:#0D3B66;    
+
+
+        #header {
+            background-color: #0D3B66;
             position: fixed;
             width: 100%;
             height: 16%;
             left: 0px;
             top: 0px;
-            z-index:1000;     
+            z-index: 1000;
         }
-        
-        
-        .text{
+
+
+        .text {
             position: absolute;
             font-size: 2.3vmin;
-            line-height: 2.25vmin;    
-            color: #000000;        
+            line-height: 2.25vmin;
+            color: #000000;
         }
-        
-        .photo{
-            position: absolute; 
-            width: 40%;
-            height: 40%;   
-         }
 
-        .image-cropper{
+        .photo {
+            position: absolute;
+            width: 40%;
+            height: 40%;
+        }
+
+        .image-cropper {
             width: 12vmin;
             height: 12vmin;
             position: absolute;
             overflow: hidden;
             background: #FFFFFF;
             border-radius: 50%;
-         }
+        }
 
-        .image{
+        .image {
             display: inline;
             margin: 0 auto;
             height: 100%;
-            width: auto;     
-         }
-        
+            width: auto;
+        }
     </style>
 </head>
 
 <body bgcolor="#F9F6F0">
     <header id="header">
-        <a href="index.php"><img src="./photos/images/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;"/></a>
+        <a href="index.php"><img src="./photos/images/logo.png" style="position:relative; width: 20%;left: 2.5%;top: 15%;" /></a>
 
-        <?php if ($_SESSION['is_admin'] == 1) { ?>
-        <a href="admin.php"><img src="./photos/images/admin.png" style="position:relative; width: 8%;left:37%;top: 13%;"/></a>
+        <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1) { ?>
+            <a href="admin.php"><img src="./photos/images/admin.png" style="position:relative; width: 8%;left:37%;top: 17%;" /></a>
         <?php } ?>
-         
-        <?php if(isset($_SESSION['account']) && $_SESSION['account'] != null){ ?>
-        <div class="text" style="color:#FFFFFF;top:25%;left:68%;">    
-        <?php echo $_SESSION['nickname'] ?>   
-        </div>
-        <div class="text" style="color:#FFFFFF;top:55%;left:68%;">    
-        積分:<?php $sth = $dbh->prepare('SELECT point from user where account = ?');
-              $sth->execute(array($_SESSION['account']));
-              $row = $sth->fetch(PDO::FETCH_ASSOC);
-              echo "&nbsp&nbsp&nbsp".$row['point']."</td>"; ?>   
-        </div>
-        <div class="photo" style="top:13%;left:75%;">
-            <div class="image-cropper"><img src="<?php if(isset($_SESSION['account'])){
-                $sth = $dbh->prepare('SELECT path FROM user WHERE account = ?');
-                $sth->execute(array($_SESSION['account']));
-                $row = $sth->fetch(PDO::FETCH_ASSOC);
-                    if($row['path']!=''){
-                        echo $row['path'];
-                    }}?>" class="image"/>
+
+        <?php if (isset($_SESSION['account']) && $_SESSION['account'] != null) { ?>
+            <div class="text" style="color:#FFFFFF;top:25%;left:68%;">
+                <?php echo $_SESSION['nickname'] ?>
             </div>
-        </div>        
-        <div>    
-        <a href="edit_profile.php"><img src="./photos/images/edit.png" style="position:absolute;width:8%;left:83%;
-top:15%;"/></a>    
-        <a href="logout.php"><img src="./photos/images/logout.png" style="position:absolute;width:8%;left:83%;
-top:55%;"/></a>  
-        </div>     
-        <?php }else{ ?>
-        <a href="register.php"><img src="./photos/images/register.png" style="position:absolute;width:8%;left:83%;
-top:15%;"/></a>    
-        <a href="login.php"><img src="./photos/images/login.png" style="position:absolute;width:8%;left:83%;
-top:55%;"/></a>     
-    
-<?php } ?>
-        
+            <div class="text" style="color:#FFFFFF;top:55%;left:68%;">
+                積分:<?php $sth = $dbh->prepare('SELECT point from user where account = ?');
+                    $sth->execute(array($_SESSION['account']));
+                    $row = $sth->fetch(PDO::FETCH_ASSOC);
+                    echo "&nbsp&nbsp&nbsp" . $row['point'] . "</td>"; ?>
+            </div>
+            <div class="photo" style="top:13%;left:75%;">
+                <div class="image-cropper"><img src="<?php if (isset($_SESSION['account'])) {
+                                                            $sth = $dbh->prepare('SELECT path FROM user WHERE account = ?');
+                                                            $sth->execute(array($_SESSION['account']));
+                                                            $row = $sth->fetch(PDO::FETCH_ASSOC);
+                                                            if ($row['path'] != '') {
+                                                                echo $row['path'];
+                                                            }
+                                                        } ?>" class="image" />
+                </div>
+            </div>
+            <div>
+                <a href="edit_profile.php"><img src="./photos/images/edit.png" style="position:absolute;width:8%;left:83%;
+top:15%;" /></a>
+                <a href="logout.php"><img src="./photos/images/logout.png" style="position:absolute;width:8%;left:83%;
+top:55%;" /></a>
+            </div>
+        <?php } else { ?>
+            <a href="register.php"><img src="./photos/images/register.png" style="position:absolute;width:8%;left:83%;
+top:15%;" /></a>
+            <a href="login.php"><img src="./photos/images/login.png" style="position:absolute;width:8%;left:83%;
+top:55%;" /></a>
+
+        <?php } ?>
+
     </header>
-<br><br><br><br><br><br>
+    <br><br><br><br><br><br>
 
     <!-- <div class="container2">
         <table class="body-table">
