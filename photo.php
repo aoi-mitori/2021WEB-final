@@ -5,7 +5,7 @@ if (isset($_GET['id'])) {
     $sth->execute(array((int)$_GET['id']));
     $row = $sth->fetch(PDO::FETCH_ASSOC);
 }
-
+header('X-Content-Type-Options: nosniff');
 ?>
 
 
