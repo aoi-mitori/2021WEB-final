@@ -1,6 +1,51 @@
 <?php
 session_start();
 include("pdoInc.php");
+
+
+$sth2 = $dbh->prepare('SELECT point from my_thread where id = ?');
+$sth2->execute(array($_GET['id']));
+$row2 = $sth2->fetch(PDO::FETCH_ASSOC);
+if($row2['point']>0){
+    if(!isset($_SESSION['account'])){
+        echo "權限不足，請先登入:(";
+        die('<meta http-equiv=REFRESH CONTENT=3;url=./index.php>');
+    }
+    else{
+        $sth = $dbh->prepare('SELECT point from user where account = ?');
+        $sth->execute(array($_SESSION['account']));
+        $row = $sth->fetch(PDO::FETCH_ASSOC);
+        if($row['point']<$row2['point']){
+            echo "權限不足:(";
+            die('<meta http-equiv=REFRESH CONTENT=3;url=./index.php>');
+        }
+    }
+}
+
+   //-----刪除留言-----//
+   if (isset($_GET['del'])) {
+    $sthDel = $dbh->prepare('SELECT * FROM my_thread WHERE id = ?');
+    $sthDel->execute(array((int)$_GET['del']));
+    $row = $sthDel->fetch(PDO::FETCH_ASSOC);
+
+    $sthOwnerTitle = $dbh->prepare('SELECT account FROM my_thread WHERE id = ?');
+    $sthOwnerTitle->execute(array((int)$row['root_thread_id']));
+    $rowOwnerTitle = $sthOwnerTitle->fetch(PDO::FETCH_ASSOC);
+
+
+    if ( (isset($_SESSION['is_admin']) && $_SESSION['is_admin'] == 1 )|| $_SESSION['account'] == $rowOwnerTitle['account']) { //管理員or貼文擁有者有權刪除貼文
+        $sth = $dbh->prepare('DELETE FROM my_thread WHERE id = ?'); //刪除貼文與其留言
+        $sth->execute(array((int)$_GET['del']));
+
+        $sthDelDice = $dbh->prepare('DELETE FROM my_dice WHERE thread_id = ?'); //刪除貼文的骰子
+        $sthDelDice->execute(array((int)$_GET['del']));
+        echo '<meta http-equiv=REFRESH CONTENT=0;url=' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '>';
+    }
+}
+?>
+
+
+
 ?>
 
 
@@ -459,6 +504,7 @@ include("pdoInc.php");
         .app>.right-column>.rule {
             background-color: #FFFFFF;
             border: 1px solid #000;
+            padding: 10px;
             /* display: flex; */
             width: 75%;
             margin: 0 auto;
@@ -484,7 +530,7 @@ include("pdoInc.php");
 
         <?php if (isset($_SESSION['account']) && $_SESSION['account'] != null) { ?>
             <div class="text" style="color:#FFFFFF;top:25%;left:68%;">
-                <?php echo $_SESSION['nickname'] ?>
+                <?php echo htmlspecialchars($_SESSION['nickname']) ?>
             </div>
             <div class="text" style="color:#FFFFFF;top:55%;left:68%;">
                 積分:<?php $sth = $dbh->prepare('SELECT point from user where account = ?');
@@ -566,7 +612,8 @@ top:55%;" /></a>
         }
         echo '<div class="msg">';
 
-        if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $row['account'])) { //管理員顯示刪除留言按鈕
+
+        if (isset($_SESSION['account']) && $_SESSION['account'] != null && ($_SESSION['is_admin'] == 1 || $_SESSION['account'] == $owner)) { //管理員顯示刪除留言按鈕
             if ($numFloor != 0) {
                 echo '<a href="' . basename($_SERVER['PHP_SELF']) . '?id=' . (int)$_GET['id'] . '&del=' . $row['id'] .
                     '"><img class="del-btn" src="./img/Delete.png"></a>';
@@ -658,7 +705,7 @@ top:55%;" /></a>
                     $sthTt = $dbh->prepare("SELECT title from my_thread WHERE id = ?");
                     $sthTt->execute(array($_GET['id']));
                     $sthTtResult = $sthTt->fetch();
-                    echo '<h3>' . strval($sthTtResult[0]) . '</h3>';
+                    echo '<h3>' . htmlspecialchars(strval($sthTtResult[0])) . '</h3>';
                     ?>
 
                 </div>
@@ -919,14 +966,18 @@ top:55%;" /></a>
         </div>
         <div class="right-column">
             <div class="rule">
-                安價規則：
-                樓主會問一個問題，並丟出骰子<br>
-                參與者留言回覆樓主的問題並丟出骰子，樓主會取骰出同骰的留言作為答案<br><br>
-                如何丟骰子：在留言中輸入骰子語法並送出<br><br>
-                可用骰子語法：<br>
-                <img src="./ankaDice/dice-six.gif" alt="this slowpoke moves" /> (dice-six)：丟一顆六面骰子 <br>
-                <img src="./ankaDice/queen.gif" alt="this slowpoke moves" /> (queen-rainbow)：看看英國女王的繽紛穿搭<br>
-                <img src="./ankaDice/oj.gif" alt="this slowpoke moves" /> (oj)：你今天AC了嗎?<br>
+            <b>安價規則：</b><br>
+            樓主會問一個問題，並丟出骰子，
+            參與者留言回覆樓主的問題並丟出骰子，樓主會取骰出同骰的留言作為答案<br><br>
+            <b>如何丟骰子：</b><br>
+            在留言中輸入骰子語法並送出<br><br>
+            <b>可用骰子語法：</b><br>
+            <img src="./ankaDice/dice-six.gif" alt="this slowpoke moves" /> <br>
+            (dice-six)：丟一顆六面骰子 <br><br>
+            <img src="./ankaDice/queen.gif" alt="this slowpoke moves" /> <br>
+            (queen-rainbow)：看看英國女王的繽紛穿搭<br><br>
+            <img src="./ankaDice/oj.gif" alt="this slowpoke moves" /> <br>
+            (oj)：你今天AC了嗎?<br><br>
             </div>
         </div>
     </div>

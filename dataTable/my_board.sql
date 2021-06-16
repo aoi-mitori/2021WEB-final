@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.0
+-- version 4.9.5
 -- https://www.phpmyadmin.net/
 --
--- 主機： localhost
--- 產生時間： 2021 年 06 月 12 日 12:48
--- 伺服器版本： 10.4.18-MariaDB
--- PHP 版本： 8.0.3
+-- 主機： localhost:3306
+-- 產生時間： 2021 年 06 月 15 日 14:50
+-- 伺服器版本： 10.3.16-MariaDB
+-- PHP 版本： 7.3.23
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -18,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 資料庫： `annlin`
+-- 資料庫： `id16924826_database`
 --
 
 -- --------------------------------------------------------
@@ -38,10 +39,10 @@ CREATE TABLE `my_board` (
 --
 
 INSERT INTO `my_board` (`id`, `name`, `description`) VALUES
-(1, '就可板', '來分享笑話吧！'),
-(2, '八卦板', '閒聊'),
-(3, '西洽板', 'Anime, Comics, and Games'),
-(4, '民以食為天', '不知道早餐午餐晚餐宵夜要吃什麼嗎？\r\n來安價ㄅ～');
+(1, '創作安價', '安價安價安價～安價好好玩'),
+(2, '求神問卦版', '你是忘記了，還是害怕來問神？'),
+(3, '今天吃什麼？', '每天都不知道該吃什麼好嗎？來用安價決定吧！'),
+(7, '賭博版', '投骰靠賽，輕鬆自在~');
 
 --
 -- 已傾印資料表的索引
@@ -61,7 +62,7 @@ ALTER TABLE `my_board`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `my_board`
 --
 ALTER TABLE `my_board`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

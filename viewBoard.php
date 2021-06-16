@@ -559,7 +559,7 @@ include("pdoInc.php");
 
         <?php if (isset($_SESSION['account']) && $_SESSION['account'] != null) { ?>
             <div class="text" style="color:#FFFFFF;top:25%;left:68%;">
-                <?php echo $_SESSION['nickname'] ?>
+                <?php echo htmlspecialchars($_SESSION['nickname']); ?>
             </div>
             <div class="text" style="color:#FFFFFF;top:55%;left:68%;">
                 積分:<?php $sth = $dbh->prepare('SELECT point from user where account = ?');
@@ -826,12 +826,14 @@ top:55%;" /></a>
                 $sthUserPoint->execute(array($_SESSION['account']));
                 $rowUserPoint = $sthUserPoint->fetch(PDO::FETCH_ASSOC);
                 $userPoint = $rowUserPoint['point'];
-                if ($row1['point']<=$rowUserPoint['point']){
+                //if ($row1['point']<=$rowUserPoint['point']){
+                 //}
+                }
                 echo
                 '
                 <a href="viewThread.php?id=' . $row['id'] . '">' . '<img class="seeMoreBtn" src="./img/seemore.png" alt="">' . '</a> 
                 
-            </div>'; }}
+            </div>';
             }  
         } else {
             echo '看板不存在';

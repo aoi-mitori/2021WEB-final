@@ -204,7 +204,7 @@ include("pdoInc.php");
 
         <?php if (isset($_SESSION['account']) && $_SESSION['account'] != null) { ?>
             <div class="text" style="color:#FFFFFF;top:25%;left:68%;">
-                <?php echo $_SESSION['nickname'] ?>
+                <?php echo htmlspecialchars($_SESSION['nickname']); ?>
             </div>
             <div class="text" style="color:#FFFFFF;top:55%;left:68%;">
                 積分:<?php $sth = $dbh->prepare('SELECT point from user where account = ?');
