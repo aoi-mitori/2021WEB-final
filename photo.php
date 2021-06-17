@@ -40,30 +40,29 @@ header('X-Content-Type-Options: nosniff');
 </html>
 
 
-<?php if (isset($_FILES["file"])) {
-    if ((($_FILES["file"]["type"] == "image/png") || ($_FILES["file"]["type"] == "image/jpeg")
-        || ($_FILES["file"]["type"] == "image/jpg")) && ($_FILES["file"]["size"] < 1024 * 1024)) {
-        if ($_FILES["file"]["error"] > 0) {
-            echo "檔案錯誤 " . $_FILES["file"]["error"];
-        } else {
-            echo "檔名: " . $_FILES["file"]["name"] . "<br />";
-            echo "類型: " . $_FILES["file"]["type"] . "<br />";
-            echo "大小: " . ($_FILES["file"]["size"] / 1024) . " Kb<br />";
-            $photo_user = $_SESSION["account"];
-            $old_filename = explode(".", $_FILES['file']['name']);
-            $new_filename = $photo_user . "." . $old_filename[1];
-            $file = "./photos/" . $new_filename;
-            move_uploaded_file($_FILES["file"]["tmp_name"], "./photos/" . $new_filename);
-            $sth2 =  $dbh->prepare('UPDATE user SET path = ? WHERE account = ?');
-            $sth2->execute(array($file, $photo_user));
-            echo "<script type='text/javascript'>";
-            echo "alert('已成功更新');";
-            echo "location.href='index.php';";
-            echo "</script>";
-        }
-    } else {
-        echo "<script type='text/javascript'>";
-        echo "alert('上傳失敗！');";
-        echo "</script>";
-    }
-} ?>
+
+<?php 
+        $whiteList = array('jpeg', 'jpg', 'png');  
+        if (isset($_FILES["file"])) {
+            @$extension = strtolower(end(explode(".", $_FILES["file"]["name"])));    
+            if ((in_array($extension, $whiteList)) && ($_FILES["file"]["size"] < 1024 * 1024) && (getimagesize($_FILES["file"]["tmp_name"]))){
+                if ($_FILES["file"]["error"] > 0) {
+                    echo "檔案錯誤 " . $_FILES["file"]["error"];
+                } else {
+                    $photo_user = $_SESSION["account"];
+                    $new_filename = $photo_user . "." . $extension;
+                    $file = "./photos/" . $new_filename;
+                    move_uploaded_file($_FILES["file"]["tmp_name"], "./photos/" . $new_filename);
+                    $sth2 = $dbh->prepare('UPDATE user SET path = ? WHERE account = ?');
+                    $sth2->execute(array($file, $photo_user));
+                    echo "<script type='text/javascript'>";
+                    echo "alert('已成功更新');";
+                    echo "location.href='index.php';";
+                    echo "</script>";
+                }
+            } else {
+                echo "<script type='text/javascript'>";
+                echo "alert('上傳失敗！');";
+                echo "</script>";
+            }
+    } ?>
